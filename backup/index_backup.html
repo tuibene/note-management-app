@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Note Management App</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- React and ReactDOM -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <!-- Manifest for PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <!-- Service Worker for Offline Capabilities -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registered'))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+    .note-card, .shared-note-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    .note-card:hover, .shared-note-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    .note-icon {
+      font-size: 0.85rem;
+      margin-left: 6px;
+    }
+    .navbar {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      background-color: #fff !important;
+    }
+    .btn-outline-primary, .btn-outline-secondary, .btn-outline-info, .btn-outline-danger {
+      transition: all 0.2s ease;
+    }
+    .btn-outline-primary:hover, .btn-outline-info:hover {
+      color: #fff;
+    }
+    .dark-theme {
+      background-color: #121212;
+      color: #e6e6e6;
+    }
+    .dark-theme .note-card, .dark-theme .shared-note-card {
+      background-color: #1e1e1e;
+      color: #e6e6e6;
+    }
+    .dark-theme .card-header {
+      background-color: #2a2a2a;
+    }
+    .dark-theme .navbar {
+      background-color: #1e1e1e !important;
+    }
+    .dark-theme .form-control, .dark-theme .form-select {
+      background-color: #2a2a2a;
+      color: #e6e6e6;
+      border-color: #444;
+    }
+    .unverified-alert {
+      border-radius: 10px;
+      background-color: #fff8e1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .modal-content {
+      border-radius: 14px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .form-control, .form-select {
+      border-radius: 10px;
+      transition: border-color 0.2s ease;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .btn {
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .form-feedback {
+      display: none;
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    .form-control:invalid ~ .form-feedback {
+      display: block;
+    }
+    .modal-footer {
+      border-top: none;
+    }
+    .image-preview {
+      max-width: 100px;
+      max-height: 100px;
+      object-fit: cover;
+      margin: 5px;
+      border-radius: 8px;
+    }
+    .view-note-content {
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+    .view-note-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .view-note-image {
+      max-width: 150px;
+      max-height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .status-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .collaboration-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.8rem;
+      color: #28a745;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .collaboration-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #28a745;
+    }
+    .shared-note-card .card-body {
+      padding: 1.5rem;
+    }
+    .shared-note-card .card-footer {
+      background-color: transparent;
+      border-top: none;
+      padding: 0.75rem 1.5rem;
+    }
+    .shared-note-meta {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .modal-header {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .modal-body {
+      padding-top: 0;
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      border-radius: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Offline storage with IndexedDB
+    const openDB = () => {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('NotesDB', 1);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          db.createObjectStore('notes', { keyPath: 'id' });
+          db.createObjectStore('sharedNotes', { keyPath: 'id' });
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+      });
+    };
+
+    const saveToDB = async (storeName, data) => {
+      const db = await openDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      data.forEach(item => store.put(item));
+      return tx.complete;
+    };
+
+    const loadFromDB = async (storeName) => {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    };
+
+    // Login Screen Component (unchanged)
+    function LoginScreen({ setIsLoggedIn, setUser }) {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [showRegister, setShowRegister] = useState(false);
+      const [displayName, setDisplayName] = useState('');
+      const [confirmPassword, setConfirmPassword] = useState('');
+      const [error, setError] = useState('');
+      const [showReset, setShowReset] = useState(false);
+      const [resetEmail, setResetEmail] = useState('');
+      const [otp, setOtp] = useState('');
+      const [newPassword, setNewPassword] = useState('');
+      const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        if (!email || !password) {
+          setError('Please fill in all fields');
+          return;
+        }
+        try {
+          localStorage.setItem('token', 'sample-token');
+          setUser({ email, displayName: 'User', avatar: '' });
+          setIsLoggedIn(true);
+          setError('');
+        } catch (err) {
+          setError('Login failed. Please try again.');
+        }
+      };
+
+      const handleRegister = async (e) => {
+        e.preventDefault();
+        if (!email || !displayName || !password || !confirmPassword) {
+          setError('Please fill in all fields');
+          return;
+        }
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+        try {
+          localStorage.setItem('token', 'sample-token');
+          setUser({ email, displayName, avatar: '' });
+          setIsLoggedIn(true);
+          setError('');
+        } catch (err) {
+          setError('Registration failed. Please try again.');
+        }
+      };
+
+      const handleResetRequest = async (e) => {
+        e.preventDefault();
+        if (!resetEmail) {
+          setError('Please enter your email');
+          return;
+        }
+        setShowReset('otp');
+        setError('');
+      };
+
+      const handleResetOTP = async (e) => {
+        e.preventDefault();
+        if (!otp) {
+          setError('Please enter OTP');
+          return;
+        }
+        setShowReset('newPassword');
+        setError('');
+      };
+
+      const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (!newPassword || !confirmNewPassword) {
+          setError('Please fill in all fields');
+          return;
+        }
+        if (newPassword !== confirmNewPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+        setShowReset(false);
+        setError('');
+        document.querySelector('#passwordResetModal .btn-close').click();
+      };
+
+      return (
+        <div className="container d-flex justify-content-center align-items-center min-vh-100">
+          <div className="card p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%', borderRadius: '14px' }}>
+            <h3 className="text-center mb-4 fw-semibold">{showRegister ? 'Create Account' : 'Sign In'}</h3>
+            {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+            {showRegister ? (
+              <form onSubmit={handleRegister} noValidate>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label fw-medium">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    aria-describedby="emailFeedback"
+                  />
+                  <div id="emailFeedback" className="form-feedback">Email is required</div>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="displayName" className="form-label fw-medium">Display Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    required
+                    aria-describedby="displayNameFeedback"
+                  />
+                  <div id="displayNameFeedback" className="form-feedback">Display name is required</div>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label fw-medium">Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    aria-describedby="passwordFeedback"
+                  />
+                  <div id="passwordFeedback" className="form-feedback">Password is required</div>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="confirmPassword" className="form-label fw-medium">Confirm Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    aria-describedby="confirmPasswordFeedback"
+                  />
+                  <div id="confirmPasswordFeedback" className="form-feedback">Please confirm your password</div>
+                </div>
+                <button type="submit" className="btn btn-primary w-100 fw-medium">Register</button>
+                <p className="text-center mt-3">
+                  Already have an account?{' '}
+                  <a href="#" className="text-primary" onClick={() => { setShowRegister(false); setError(''); }}>Sign In</a>
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} noValidate>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label fw-medium">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    aria-describedby="emailFeedback"
+                  />
+                  <div id="emailFeedback" className="form-feedback">Email is required</div>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label fw-medium">Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    aria-describedby="passwordFeedback"
+                  />
+                  <div id="passwordFeedback" className="form-feedback">Password is required</div>
+                </div>
+                <button type="submit" className="btn btn-primary w-100 fw-medium">Sign In</button>
+                <p className="text-center mt-3">
+                  No account?{' '}
+                  <a href="#" className="text-primary" onClick={() => { setShowRegister(true); setError(''); }}>Sign Up</a>
+                </p>
+                <p className="text-center">
+                  <a href="#" className="text-primary" data-bs-toggle="modal" data-bs-target="#passwordResetModal">Forgot Password?</a>
+                </p>
+              </form>
+            )}
+          </div>
+
+          {/* Password Reset Modal */}
+          <div className="modal fade" id="passwordResetModal" tabIndex="-1" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="passwordResetModalLabel">Reset Password</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+                  {!showReset ? (
+                    <form onSubmit={handleResetRequest}>
+                      <div className="mb-3">
+                        <label htmlFor="resetEmail" className="form-label fw-medium">Email</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          id="resetEmail"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          required
+                          aria-describedby="resetEmailFeedback"
+                        />
+                        <div id="resetEmailFeedback" className="form-feedback">Email is required</div>
+                      </div>
+                      <button type="submit" className="btn btn-primary fw-medium">Send OTP</button>
+                    </form>
+                  ) : showReset === 'otp' ? (
+                    <form onSubmit={handleResetOTP}>
+                      <div className="mb-3">
+                        <label htmlFor="otp" className="form-label fw-medium">OTP</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="otp"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          required
+                          aria-describedby="otpFeedback"
+                        />
+                        <div id="otpFeedback" className="form-feedback">OTP is required</div>
+                      </div>
+                      <button type="submit" className="btn btn-primary fw-medium">Verify OTP</button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleResetPassword}>
+                      <div className="mb-3">
+                        <label htmlFor="newPassword" className="form-label fw-medium">New Password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="newPassword"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                          aria-describedby="newPasswordFeedback"
+                        />
+                        <div id="newPasswordFeedback" className="form-feedback">New password is required</div>
+                      </div>
+                      <div className="mb-3">
+                        <label htmlFor="confirmNewPassword" className="form-label fw-medium">Confirm New Password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="confirmNewPassword"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          required
+                          aria-describedby="confirmNewPasswordFeedback"
+                        />
+                        <div id="confirmNewPasswordFeedback" className="form-feedback">Please confirm your password</div>
+                      </div>
+                      <button type="submit" className="btn btn-primary fw-medium">Reset Password</button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Main App Component
+    function App() {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [user, setUser] = useState({ email: '', displayName: '', avatar: '' });
+      const [viewMode, setViewMode] = useState('grid');
+      const [theme, setTheme] = useState('light');
+      const [notes, setNotes] = useState([]);
+      const [sharedNotes, setSharedNotes] = useState([]);
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedLabels, setSelectedLabels] = useState([]);
+      const [labels, setLabels] = useState(['Work', 'Personal']);
+      const [userPreferences, setUserPreferences] = useState({
+        fontSize: 'fs-5',
+        noteColor: 'bg-white',
+        theme: 'light'
+      });
+      const [isVerified, setIsVerified] = useState(false);
+      const [selectedNote, setSelectedNote] = useState(null);
+      const [noteForm, setNoteForm] = useState({ title: '', content: '', labels: [], pinned: false, isLocked: false, password: '', confirmPassword: '', images: [] });
+      const [error, setError] = useState('');
+      const [isOffline, setIsOffline] = useState(false);
+      const [passwordInput, setPasswordInput] = useState('');
+      const [collaborationUsers, setCollaborationUsers] = useState([]);
+      const [isSaving, setIsSaving] = useState(false);
+
+      // Simulate login status and verification check
+      useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsLoggedIn(!!token);
+        setIsVerified(false);
+        document.body.className = theme === 'light' ? '' : 'dark-theme';
+        setIsOffline(!navigator.onLine);
+        window.addEventListener('online', () => setIsOffline(false));
+        window.addEventListener('offline', () => setIsOffline(true));
+        return () => {
+          window.removeEventListener('online', () => setIsOffline(false));
+          window.removeEventListener('offline', () => setIsOffline(true));
+        };
+      }, [theme]);
+
+      // Load notes from IndexedDB on mount
+      useEffect(() => {
+        const loadData = async () => {
+          try {
+            const savedNotes = await loadFromDB('notes');
+            const savedSharedNotes = await loadFromDB('sharedNotes');
+            setNotes(savedNotes.length ? savedNotes : [
+              { id: 1, title: 'Meeting Notes', content: 'Discuss project timeline...', createdAt: '2025-05-10', pinned: true, pinnedAt: '2025-05-10T10:00:00Z', labels: ['Work'], isLocked: false, shared: false, images: [] },
+              { id: 2, title: 'Grocery List', content: 'Milk, eggs, bread...', createdAt: '2025-05-09', pinned: false, labels: ['Personal'], isLocked: true, password: '1234', shared: true, sharedWith: [{ email: 'user@example.com', permission: 'edit' }], images: [] }
+            ]);
+            setSharedNotes(savedSharedNotes.length ? savedSharedNotes : [
+              { id: 3, title: 'Team Plan', content: 'Project roadmap...', sharedBy: 'admin@example.com', permission: 'read', sharedAt: '2025-05-10T10:00:00Z', images: [] },
+              { id: 4, title: 'Shared Todo', content: 'Task assignments...', sharedBy: 'colleague@example.com', permission: 'edit', sharedAt: '2025-05-09T15:00:00Z', images: [] }
+            ]);
+          } catch (err) {
+            console.error('Failed to load from IndexedDB:', err);
+          }
+        };
+        loadData();
+      }, []);
+
+      // Save notes to IndexedDB when notes change
+      useEffect(() => {
+        if (notes.length) saveToDB('notes', notes);
+        if (sharedNotes.length) saveToDB('sharedNotes', sharedNotes);
+      }, [notes, sharedNotes]);
+
+      // Live search handler
+      useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+          console.log('Searching for:', searchQuery);
+        }, 300);
+        return () => clearTimeout(delayDebounce);
+      }, [searchQuery]);
+
+      // Auto-save note form
+      useEffect(() => {
+        if (!noteForm.title && !noteForm.content) return;
+        const delayAutoSave = setTimeout(async () => {
+          setIsSaving(true);
+          if (!noteForm.title || !noteForm.content) {
+            setError('Title and content are required');
+            setIsSaving(false);
+            return;
+          }
+          if (noteForm.isLocked && (!noteForm.password || noteForm.password !== noteForm.confirmPassword)) {
+            setError('Passwords must match and cannot be empty');
+            setIsSaving(false);
+            return;
+          }
+          const newNote = {
+            id: selectedNote ? selectedNote.id : Date.now(),
+            title: noteForm.title,
+            content: noteForm.content,
+            createdAt: selectedNote ? selectedNote.createdAt : new Date().toISOString(),
+            pinned: noteForm.pinned,
+            pinnedAt: noteForm.pinned ? (selectedNote?.pinnedAt || new Date().toISOString()) : null,
+            labels: noteForm.labels,
+            isLocked: noteForm.isLocked,
+            password: noteForm.isLocked ? noteForm.password : null,
+            shared: selectedNote ? selectedNote.shared : false,
+            sharedWith: selectedNote ? selectedNote.sharedWith : [],
+            images: noteForm.images,
+            sharedBy: selectedNote?.sharedBy || null,
+            permission: selectedNote?.permission || null,
+            sharedAt: selectedNote?.sharedAt || null
+          };
+          if (selectedNote) {
+            if (selectedNote.sharedBy) {
+              setSharedNotes(prev => prev.map(note => note.id === selectedNote.id ? newNote : note));
+            } else {
+              setNotes(prev => prev.map(note => note.id === selectedNote.id ? newNote : note));
+            }
+          } else {
+            setNotes(prev => [...prev, newNote]);
+          }
+          setError('');
+          setIsSaving(false);
+        }, 500);
+        return () => clearTimeout(delayAutoSave);
+      }, [noteForm]);
+
+      // Simulate real-time collaboration
+      useEffect(() => {
+        if (selectedNote?.permission === 'edit' || selectedNote?.sharedWith?.some(s => s.permission === 'edit')) {
+          const interval = setInterval(() => {
+            setCollaborationUsers(prev => {
+              const users = [
+                { name: 'User1', avatar: 'https://via.placeholder.com/24' },
+                { name: 'User2', avatar: 'https://via.placeholder.com/24' }
+              ];
+              return prev.length ? [] : [users[Math.floor(Math.random() * users.length)]];
+            });
+          }, 5000);
+          return () => clearInterval(interval);
+        }
+      }, [selectedNote]);
+
+      // Handle share form submission
+      const handleShare = async (e) => {
+        e.preventDefault();
+        const emails = e.target.recipientEmails.value.split(',').map(email => email.trim());
+        const permission = e.target.querySelector('select').value;
+        if (!emails.length || !emails.every(email => email.includes('@'))) {
+          setError('Please enter valid email addresses');
+          return;
+        }
+        try {
+          setNotes(prev => prev.map(note => 
+            note.id === selectedNote.id 
+            ? { ...note, shared: true, sharedWith: [...(note.sharedWith || []), ...emails.map(email => ({ email, permission }))] }
+            : note
+          ));
+          setError('');
+          document.querySelector('#shareNoteModal .btn-close').click();
+        } catch (err) {
+          setError('Error sharing note');
+        }
+      };
+
+      // Handle password verification for locked notes
+      const handlePasswordVerification = (e) => {
+        e.preventDefault();
+        if (passwordInput === selectedNote.password) {
+          setError('');
+          document.querySelector('#passwordVerificationModal .btn-close').click();
+          const targetModal = e.target.closest('.modal').getAttribute('data-bs-target') || '#viewNoteModal';
+          if (targetModal === '#noteModal') {
+            setNoteForm({
+              title: selectedNote.title,
+              content: selectedNote.content,
+              labels: selectedNote.labels,
+              pinned: selectedNote.pinned,
+              isLocked: selectedNote.isLocked,
+              password: '',
+              confirmPassword: '',
+              images: selectedNote.images
+            });
+          } else if (targetModal === '#confirmDeleteModal') {
+            setNotes(prev => prev.filter(note => note.id !== selectedNote.id));
+          }
+          document.querySelector(targetModal).classList.add('show');
+          document.querySelector(targetModal).style.display = 'block';
+        } else {
+          setError('Incorrect password');
+        }
+        setPasswordInput('');
+      };
+
+      // Handle note password change
+      const handleNotePasswordChange = (e) => {
+        e.preventDefault();
+        const currentPassword = e.target.currentPassword.value;
+        const newPassword = e.target.newPassword.value;
+        const confirmNewPassword = e.target.confirmNewPassword.value;
+        if (currentPassword !== selectedNote.password) {
+          setError('Current password is incorrect');
+          return;
+        }
+        if (!newPassword || newPassword !== confirmNewPassword) {
+          setError('New passwords must match and cannot be empty');
+          return;
+        }
+        setNotes(prev => prev.map(note => 
+          note.id === selectedNote.id 
+          ? { ...note, password: newPassword, isLocked: true }
+          : note
+        ));
+        setError('');
+        document.querySelector('#notePasswordModal .btn-close').click();
+      };
+
+      // Handle note password disable
+      const handleNotePasswordDisable = (e) => {
+        e.preventDefault();
+        const currentPassword = e.target.currentPassword.value;
+        if (currentPassword !== selectedNote.password) {
+          setError('Current password is incorrect');
+          return;
+        }
+        setNotes(prev => prev.map(note => 
+          note.id === selectedNote.id 
+          ? { ...note, isLocked: false, password: null }
+          : note
+        ));
+        setError('');
+        document.querySelector('#notePasswordModal .btn-close').click();
+      };
+
+      // Handle profile edit
+      const handleProfileEdit = (e) => {
+        e.preventDefault();
+        const displayName = e.target.displayName.value;
+        const avatar = e.target.avatar.files[0] ? URL.createObjectURL(e.target.avatar.files[0]) : user.avatar;
+        setUser({ ...user, displayName, avatar });
+        document.querySelector('#profileModal .btn-close').click();
+      };
+
+      // Handle account password change
+      const handleAccountPasswordChange = (e) => {
+        e.preventDefault();
+        const currentPassword = e.target.currentPassword.value;
+        const newPassword = e.target.newPassword.value;
+        const confirmNewPassword = e.target.confirmNewPassword.value;
+        if (currentPassword !== 'sample-password') {
+          setError('Current password is incorrect');
+          return;
+        }
+        if (!newPassword || newPassword !== confirmNewPassword) {
+          setError('New passwords must match and cannot be empty');
+          return;
+        }
+        setError('');
+        document.querySelector('#changePasswordModal .btn-close').click();
+      };
+
+      // Filter and sort notes
+      const filteredNotes = notes.filter(note => 
+        (note.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         note.content.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (selectedLabels.length === 0 || note.labels.some(label => selectedLabels.includes(label)))
+      ).sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        if (a.pinned && b.pinned) return new Date(b.pinnedAt) - new Date(a.pinnedAt);
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      if (!isLoggedIn) {
+        return <LoginScreen setIsLoggedIn={setIsLoggedIn} setUser={setUser} />;
+      }
+
+      return (
+        <div className={`min-vh-100 ${theme === 'dark' ? 'dark-theme' : ''}`}>
+          {/* Offline Notification */}
+          {isOffline && (
+            <div className="container mt-3">
+              <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                You are offline. Notes are available from local storage.
+                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            </div>
+          )}
+
+          {/* Unverified Account Notification */}
+          {!isVerified && (
+            <div className="container mt-3">
+              <div className="alert unverified-alert alert-dismissible fade show" role="alert">
+                Your account is unverified. Please check your email to activate your account.
+                <button className="btn btn-sm btn-primary ms-2" onClick={() => setIsVerified(true)}>Simulate Activation</button>
+                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <nav className="navbar navbar-expand-lg navbar-light bg-white mb-4">
+            <div className="container">
+              <a className="navbar-brand fw-bold" href="#">Notes</a>
+              <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span className="navbar-toggler-icon"></span>
+              </button>
+              <div className="collapse navbar-collapse" id="navbarNav">
+                <ul className="navbar-nav me-auto">
+                  <li className="nav-item">
+                    <a className="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#noteModal" onClick={() => setSelectedNote(null)}>New Note</a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#userPreferencesModal">Settings</a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#labelManagementModal">Labels</a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#shared-notes">Shared Notes</a>
+                  </li>
+                </ul>
+                <div className="d-flex align-items-center gap-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search notes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ maxWidth: '200px' }}
+                    aria-label="Search notes"
+                  />
+                  <button
+                    className={`btn btn-outline-secondary ${viewMode === 'grid' ? 'active' : ''}`}
+                    onClick={() => setViewMode('grid')}
+                    title="Grid View"
+                    aria-label="Grid View"
+                  >
+                    <i className="bi bi-grid"></i>
+                  </button>
+                  <button
+                    className={`btn btn-outline-secondary ${viewMode === 'list' ? 'active' : ''}`}
+                    onClick={() => setViewMode('list')}
+                    title="List View"
+                    aria-label="List View"
+                  >
+                    <i className="bi bi-list"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    title={theme === 'light' ? 'Dark Theme' : 'Light Theme'}
+                    aria-label={theme === 'light' ? 'Dark Theme' : 'Light Theme'}
+                  >
+                    <i className={theme === 'light' ? 'bi bi-moon' : 'bi bi-sun'}></i>
+                  </button>
+                  <button className="btn btn-outline-danger" onClick={() => { localStorage.removeItem('token'); setIsLoggedIn(false); }} aria-label="Sign Out">
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          {/* Label Filters */}
+          <div className="container mb-4">
+            <div className="d-flex flex-wrap gap-3">
+              {labels.map(label => (
+                <div className="form-check" key={label}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={label}
+                    checked={selectedLabels.includes(label)}
+                    onChange={() => {
+                      setSelectedLabels(prev => 
+                        prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
+                      );
+                    }}
+                    aria-label={`Filter by ${label}`}
+                  />
+                  <label className="form-check-label" htmlFor={label}>{label}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes Display */}
+          <div className="container">
+            <h5 className="mb-3 fw-semibold">My Notes</h5>
+            <div className={`row ${viewMode === 'list' ? 'list-view' : ''}`}>
+              {filteredNotes.map((note, index) => (
+                <div key={note.id} className={viewMode === 'grid' ? 'col-lg-4 col-md-6 mb-4' : 'col-12 mb-3'} style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className={`card note-card ${userPreferences.noteColor}`}>
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h6 className={`card-title mb-0 ${userPreferences.fontSize}`}>{note.title}</h6>
+                      <div className="d-flex align-items-center">
+                        {note.pinned && <span className="note-icon badge bg-warning text-dark">Pinned</span>}
+                        {note.isLocked && <span className="note-icon badge bg-danger">Locked</span>}
+                        {note.shared && (
+                          <span className="note-icon badge bg-info">
+                            Shared ({note.sharedWith.map(s => s.permission).join(', ')})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <p className={`card-text ${userPreferences.fontSize}`} style={{ maxHeight: '80px', overflow: 'hidden', marginBottom: '1rem' }}>
+                        {note.content}
+                      </p>
+                      {note.images.length > 0 && (
+                        <div className="mb-2">
+                          {note.images.map((img, i) => (
+                            <img key={i} src={img} alt={`Attachment ${i + 1}`} className="image-preview" />
+                          ))}
+                        </div>
+                      )}
+                      {note.labels.length > 0 && (
+                        <div className="mb-2">
+                          {note.labels.map(label => (
+                            <span key={label} className="badge bg-secondary me-1">{label}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="d-flex gap-2 flex-wrap">
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target={note.isLocked ? '#passwordVerificationModal' : '#viewNoteModal'}
+                          data-bs-target-modal="#viewNoteModal"
+                          onClick={() => {
+                            setSelectedNote(note);
+                            setError('');
+                            if (!note.isLocked) {
+                              document.querySelector('#viewNoteModal').classList.add('show');
+                              document.querySelector('#viewNoteModal').style.display = 'block';
+                            }
+                          }}
+                          aria-label={`View ${note.title}`}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target={note.isLocked ? '#passwordVerificationModal' : '#noteModal'}
+                          data-bs-target-modal="#noteModal"
+                          onClick={() => {
+                            setSelectedNote(note);
+                            if (!note.isLocked) {
+                              setNoteForm({
+                                title: note.title,
+                                content: note.content,
+                                labels: note.labels,
+                                pinned: note.pinned,
+                                isLocked: note.isLocked,
+                                password: '',
+                                confirmPassword: '',
+                                images: note.images
+                              });
+                            }
+                          }}
+                          aria-label={`Edit ${note.title}`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-outline-info btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target="#shareNoteModal"
+                          onClick={() => setSelectedNote(note)}
+                          aria-label={`Share ${note.title}`}
+                        >
+                          Share
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target="#notePasswordModal"
+                          onClick={() => setSelectedNote(note)}
+                          aria-label={`Manage Password for ${note.title}`}
+                        >
+                          Manage Password
+                        </button>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target={note.isLocked ? '#passwordVerificationModal' : '#confirmDeleteModal'}
+                          data-bs-target-modal="#confirmDeleteModal"
+                          onClick={() => setSelectedNote(note)}
+                          aria-label={`Delete ${note.title}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Shared Notes Section */}
+            <div id="shared-notes" className="mt-5">
+              <h5 className="mb-3 fw-semibold">Notes Shared with Me</h5>
+              {sharedNotes.length > 0 ? (
+                <div className={`row ${viewMode === 'list' ? 'list-view' : ''}`}>
+                  {sharedNotes.map((note, index) => (
+                    <div key={note.id} className={viewMode === 'grid' ? 'col-lg-4 col-md-6 mb-4' : 'col-12 mb-3'} style={{ animationDelay: `${index * 0.1}s` }}>
+                      <div className={`card shared-note-card ${userPreferences.noteColor}`}>
+                        <div className="card-body">
+                          <h6 className={`card-title mb-2 ${userPreferences.fontSize}`}>{note.title}</h6>
+                          <p className={`card-text ${userPreferences.fontSize}`} style={{ maxHeight: '60px', overflow: 'hidden', marginBottom: '1rem' }}>
+                            {note.content}
+                          </p>
+                          <div className="shared-note-meta mb-2">
+                            <div>Shared by: {note.sharedBy}</div>
+                            <div>Shared on: {new Date(note.sharedAt).toLocaleString()}</div>
+                          </div>
+                          <div className="status-badges mb-3">
+                            <span className={`badge ${note.permission === 'edit' ? 'bg-success' : 'bg-primary'}`}>
+                              {note.permission === 'edit' ? 'Editable' : 'Read-Only'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="card-footer d-flex gap-2 flex-wrap">
+                          <button
+                            className="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#viewNoteModal"
+                            onClick={() => {
+                              setSelectedNote(note);
+                              setError('');
+                            }}
+                            aria-label={`View ${note.title}`}
+                          >
+                            <i className="bi bi-eye me-1"></i> View
+                          </button>
+                          {note.permission === 'edit' && (
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              data-bs-toggle="modal"
+                              data-bs-target="#noteModal"
+                              onClick={() => {
+                                setSelectedNote(note);
+                                setNoteForm({
+                                  title: note.title,
+                                  content: note.content,
+                                  labels: [],
+                                  pinned: false,
+                                  isLocked: false,
+                                  password: '',
+                                  confirmPassword: '',
+                                  images: note.images
+                                });
+                              }}
+                              aria-label={`Edit ${note.title}`}
+                            >
+                              <i className="bi bi-pencil me-1"></i> Edit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted">No notes have been shared with you.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Note Create/Edit Modal */}
+          <div className="modal fade" id="noteModal" tabIndex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                {isSaving && (
+                  <div className="spinner-overlay">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Saving...</span>
+                    </div>
+                  </div>
+                )}
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="noteModalLabel">{selectedNote ? 'Edit Note' : 'New Note'}</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+                  {collaborationUsers.length > 0 && (
+                    <div className="collaboration-indicator">
+                      <span>Editing with:</span>
+                      {collaborationUsers.map(user => (
+                        <img
+                          key={user.name}
+                          src={user.avatar}
+                          alt={`${user.name}'s avatar`}
+                          className="collaboration-avatar"
+                          title={user.name}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <form noValidate>
+                    <div className="mb-4">
+                      <label htmlFor="noteTitle" className="form-label fw-medium">Title</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="noteTitle"
+                        value={noteForm.title}
+                        onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
+                        required
+                        aria-describedby="noteTitleFeedback"
+                        placeholder="Enter note title"
+                      />
+                      <div id="noteTitleFeedback" className="form-feedback">Title is required</div>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="noteContent" className="form-label fw-medium">Content</label>
+                      <textarea
+                        className="form-control"
+                        id="noteContent"
+                        rows="6"
+                        value={noteForm.content}
+                        onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
+                        required
+                        aria-describedby="noteContentFeedback"
+                        placeholder="Write your note here..."
+                      ></textarea>
+                      <div id="noteContentFeedback" className="form-feedback">Content is required</div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="form-label fw-medium">Attach Images</label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+                          setNoteForm({ ...noteForm, images: [...noteForm.images, ...files] });
+                        }}
+                        aria-describedby="imageFeedback"
+                      />
+                      <div id="imageFeedback" className="form-feedback">Select valid image files</div>
+                      {noteForm.images.length > 0 && (
+                        <div className="mt-2 d-flex flex-wrap gap-2">
+                          {noteForm.images.map((img, i) => (
+                            <div key={i} className="position-relative">
+                              <img src={img} alt={`Preview ${i + 1}`} className="image-preview" />
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                style={{ transform: 'translate(50%, -50%)' }}
+                                onClick={() => setNoteForm({ ...noteForm, images: noteForm.images.filter((_, index) => index !== i) })}
+                                aria-label={`Remove image ${i + 1}`}
+                              >
+                                <i className="bi bi-x"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {!selectedNote?.sharedBy && (
+                      <>
+                        <div className="mb-4">
+                          <label className="form-label fw-medium">Labels</label>
+                          <select
+                            className="form-select"
+                            multiple
+                            value={noteForm.labels}
+                            onChange={(e) => setNoteForm({ ...noteForm, labels: Array.from(e.target.selectedOptions, option => option.value) })}
+                            aria-label="Select labels"
+                          >
+                            {labels.map(label => (
+                              <option key={label} value={label}>{label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="form-check mb-4">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="pinNote"
+                            checked={noteForm.pinned}
+                            onChange={(e) => setNoteForm({ ...noteForm, pinned: e.target.checked })}
+                            aria-label="Pin to top"
+                          />
+                          <label className="form-check-label" htmlFor="pinNote">Pin to Top</label>
+                        </div>
+                        <div className="form-check mb-4">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="lockNote"
+                            checked={noteForm.isLocked}
+                            onChange={(e) => {
+                              setNoteForm({ ...noteForm, isLocked: e.target.checked });
+                              document.getElementById('passwordFields').style.display = e.target.checked ? 'block' : 'none';
+                            }}
+                            aria-label="Password protect"
+                          />
+                          <label className="form-check-label" htmlFor="lockNote">Password Protect</label>
+                        </div>
+                        <div id="passwordFields" style={{ display: noteForm.isLocked ? 'block' : 'none' }}>
+                          <div className="mb-4">
+                            <label htmlFor="notePassword" className="form-label fw-medium">Password</label>
+                            <input
+                              type="password"
+                              className="form-control"
+                              id="notePassword"
+                              value={noteForm.password}
+                              onChange={(e) => setNoteForm({ ...noteForm, password: e.target.value })}
+                              aria-describedby="notePasswordFeedback"
+                              placeholder="Enter password"
+                            />
+                            <div id="notePasswordFeedback" className="form-feedback">Password is required</div>
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor="confirmNotePassword" className="form-label fw-medium">Confirm Password</label>
+                            <input
+                              type="password"
+                              className="form-control"
+                              id="confirmNotePassword"
+                              value={noteForm.confirmPassword}
+                              onChange={(e) => setNoteForm({ ...noteForm, confirmPassword: e.target.value })}
+                              aria-describedby="confirmNotePasswordFeedback"
+                              placeholder="Confirm password"
+                            />
+                            <div id="confirmNotePasswordFeedback" className="form-feedback">Please confirm your password</div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* View Note Modal */}
+          <div className="modal fade" id="viewNoteModal" tabIndex="-1" aria-labelledby="viewNoteModalLabel" aria-hidden="true">
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="viewNoteModalLabel">{selectedNote?.title || 'View Note'}</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                      {error}
+                      <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                  )}
+                  {selectedNote && (
+                    <div>
+                      <h6 className={`fw-semibold ${userPreferences.fontSize} mb-3`}>{selectedNote.title}</h6>
+                      <div className={`view-note-content ${userPreferences.fontSize}`}>
+                        {selectedNote.content}
+                      </div>
+                      {selectedNote.images.length > 0 && (
+                        <div className="view-note-images mb-4">
+                          {selectedNote.images.map((img, i) => (
+                            <img key={i} src={img} alt={`Attachment ${i + 1}`} className="view-note-image" />
+                          ))}
+                        </div>
+                      )}
+                      {selectedNote.labels?.length > 0 && (
+                        <div className="mb-4">
+                          <strong>Labels: </strong>
+                          {selectedNote.labels.map(label => (
+                            <span key={label} className="badge bg-secondary me-1">{label}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="status-badges mb-4">
+                        {selectedNote.pinned && <span className="badge bg-warning text-dark">Pinned</span>}
+                        {selectedNote.isLocked && <span className="badge bg-danger">Locked</span>}
+                        {selectedNote.shared && (
+                          <span className="badge bg-info">
+                            Shared ({selectedNote.sharedWith?.map(s => s.permission).join(', ')})
+                          </span>
+                        )}
+                        {selectedNote.sharedBy && (
+                          <span className={`badge ${selectedNote.permission === 'edit' ? 'bg-success' : 'bg-primary'}`}>
+                            {selectedNote.permission === 'edit' ? 'Editable' : 'Read-Only'}
+                          </span>
+                        )}
+                      </div>
+                      {selectedNote.sharedBy && (
+                        <div className="shared-note-meta mb-4">
+                          <div>Shared by: {selectedNote.sharedBy}</div>
+                          <div>Shared on: {new Date(selectedNote.sharedAt).toLocaleString()}</div>
+                        </div>
+                      )}
+                      <div className="d-flex gap-2 flex-wrap">
+                        {!selectedNote.sharedBy && (
+                          <>
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              data-bs-toggle="modal"
+                              data-bs-target="#noteModal"
+                              onClick={() => {
+                                setNoteForm({
+                                  title: selectedNote.title,
+                                  content: selectedNote.content,
+                                  labels: selectedNote.labels,
+                                  pinned: selectedNote.pinned,
+                                  isLocked: selectedNote.isLocked,
+                                  password: '',
+                                  confirmPassword: '',
+                                  images: selectedNote.images
+                                });
+                                document.querySelector('#viewNoteModal .btn-close').click();
+                              }}
+                              aria-label={`Edit ${selectedNote.title}`}
+                            >
+                              <i className="bi bi-pencil me-1"></i> Edit
+                            </button>
+                            <button
+                              className="btn btn-outline-info btn-sm"
+                              data-bs-toggle="modal"
+                              data-bs-target="#shareNoteModal"
+                              onClick={() => document.querySelector('#viewNoteModal .btn-close').click()}
+                              aria-label={`Share ${selectedNote.title}`}
+                            >
+                              <i className="bi bi-share me-1"></i> Share
+                            </button>
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              data-bs-toggle="modal"
+                              data-bs-target="#notePasswordModal"
+                              onClick={() => document.querySelector('#viewNoteModal .btn-close').click()}
+                              aria-label={`Manage Password for ${selectedNote.title}`}
+                            >
+                              <i className="bi bi-lock me-1"></i> Manage Password
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              data-bs-toggle="modal"
+                              data-bs-target="#confirmDeleteModal"
+                              onClick={() => document.querySelector('#viewNoteModal .btn-close').click()}
+                              aria-label={`Delete ${selectedNote.title}`}
+                            >
+                              <i className="bi bi-trash me-1"></i> Delete
+                            </button>
+                          </>
+                        )}
+                        {selectedNote.sharedBy && selectedNote.permission === 'edit' && (
+                          <button
+                            className="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#noteModal"
+                            onClick={() => {
+                              setNoteForm({
+                                title: selectedNote.title,
+                                content: selectedNote.content,
+                                labels: [],
+                                pinned: false,
+                                isLocked: false,
+                                password: '',
+                                confirmPassword: '',
+                                images: selectedNote.images
+                              });
+                              document.querySelector('#viewNoteModal .btn-close').click();
+                            }}
+                            aria-label={`Edit ${selectedNote.title}`}
+                          >
+                            <i className="bi bi-pencil me-1"></i> Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Password Verification Modal */}
+          <div className="modal fade" id="passwordVerificationModal" tabIndex="-1" aria-labelledby="passwordVerificationModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="passwordVerificationModalLabel">Enter Note Password</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                      {error}
+                      <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                  )}
+                  <form onSubmit={handlePasswordVerification}>
+                    <div className="mb-3">
+                      <label htmlFor="passwordInput" className="form-label fw-medium">Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        id="passwordInput"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        required
+                        aria-describedby="passwordInputFeedback"
+                      />
+                      <div id="permissionInputFeedback" className="form-feedback">Password is required</div>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Verify</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Note Password Management Modal */}
+          <div className="modal fade" id="notePasswordModal" tabIndex="-1" aria-labelledby="notePasswordModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="notePasswordModalLabel">Manage Note Password</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+                  {selectedNote?.isLocked ? (
+                    <>
+                      <form onSubmit={handleNotePasswordChange} className="mb-3">
+                        <div className="mb-3">
+                          <label htmlFor="currentPassword" className="form-label fw-medium">Current Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="currentPassword"
+                            required
+                            aria-describedby="currentPasswordFeedback"
+                          />
+                          <div id="currentPasswordFeedback" className="form-feedback">Current password is required</div>
+                        </div>
+                        <div className="mb-3">
+                          <label htmlFor="newPassword" className="form-label fw-medium">New Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="newPassword"
+                            required
+                            aria-describedby="newPasswordFeedback"
+                          />
+                          <div id="newPasswordFeedback" className="form-feedback">New password is required</div>
+                        </div>
+                        <div className="mb-3">
+                          <label htmlFor="confirmNewPassword" className="form-label fw-medium">Confirm New Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="confirmNewPassword"
+                            required
+                            aria-describedby="confirmNewPasswordFeedback"
+                          />
+                          <div id="confirmNewPasswordFeedback" className="form-feedback">Please confirm your password</div>
+                        </div>
+                        <button type="submit" className="btn btn-primary fw-medium">Change Password</button>
+                      </form>
+                      <form onSubmit={handleNotePasswordDisable}>
+                        <div className="mb-3">
+                          <label htmlFor="currentPasswordDisable" className="form-label fw-medium">Current Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="currentPasswordDisable"
+                            required
+                            aria-describedby="currentPasswordDisableFeedback"
+                          />
+                          <div id="currentPasswordDisableFeedback" className="form-feedback">Current password is required</div>
+                        </div>
+                        <button type="submit" className="btn btn-danger fw-medium">Disable Password</button>
+                      </form>
+                    </>
+                  ) : (
+                    <p className="text-muted">This note is not password-protected. Enable protection in the edit modal.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Share Note Modal */}
+          <div className="modal fade" id="shareNoteModal" tabIndex="-1" aria-labelledby="shareNoteModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="shareNoteModalLabel">
+                    Share "{selectedNote?.title || 'Note'}"
+                  </h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+                  <form onSubmit={handleShare} noValidate>
+                    <div className="mb-3">
+                      <label htmlFor="recipientEmails" className="form-label fw-medium">Recipient Emails</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="recipientEmails"
+                        placeholder="Enter emails (comma-separated)"
+                        required
+                        aria-describedby="recipientEmailsFeedback"
+                      />
+                      <div id="recipientEmailsFeedback" className="form-feedback">Enter valid email addresses</div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-medium">Permission</label>
+                      <select className="form-select" aria-label="Select permission">
+                        <option value="read">Read-Only</option>
+                        <option value="edit">Editable</option>
+                      </select>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Share</button>
+                  </form>
+                  {selectedNote?.sharedWith?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 className="fw-semibold">Shared With</h6>
+                      <ul className="list-group">
+                        {selectedNote.sharedWith.map((share, index) => (
+                          <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                            {share.email} ({share.permission})
+                            <button className="btn btn-outline-danger btn-sm" onClick={() => {
+                              setNotes(prev => prev.map(note => 
+                                note.id === selectedNote.id 
+                                ? { ...note, sharedWith: note.sharedWith.filter(s => s.email !== share.email) }
+                                : note
+                              ));
+                            }}>Revoke</button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Confirm Delete Modal */}
+          <div className="modal fade" id="confirmDeleteModal" tabIndex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  Are you sure you want to delete "{selectedNote?.title || 'this note'}"?
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline-secondary fw-medium" data-bs-dismiss="modal">Cancel</button>
+                  <button type="button" className="btn btn-danger fw-medium" onClick={() => {
+                    setNotes(prev => prev.filter(note => note.id !== selectedNote.id));
+                    document.querySelector('#confirmDeleteModal .btn-close').click();
+                  }}>Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* User Preferences Modal */}
+          <div className="modal fade" id="userPreferencesModal" tabIndex="-1" aria-labelledby="userPreferencesModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="userPreferencesModalLabel">Settings</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  <form>
+                    <div className="mb-3">
+                      <label htmlFor="fontSize" className="form-label fw-medium">Font Size</label>
+                      <select
+                        className="form-select"
+                        id="fontSize"
+                        value={userPreferences.fontSize}
+                        onChange={(e) => setUserPreferences({ ...userPreferences, fontSize: e.target.value })}
+                        aria-label="Select font size"
+                      >
+                        <option value="fs-6">Small</option>
+                        <option value="fs-5">Medium</option>
+                        <option value="fs-4">Large</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="noteColor" className="form-label fw-medium">Note Color</label>
+                      <select
+                        className="form-select"
+                        id="noteColor"
+                        value={userPreferences.noteColor}
+                        onChange={(e) => setUserPreferences({ ...userPreferences, noteColor: e.target.value })}
+                        aria-label="Select note color"
+                      >
+                        <option value="bg-white">White</option>
+                        <option value="bg-info-subtle">Light Blue</option>
+                        <option value="bg-warning-subtle">Light Yellow</option>
+                      </select>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Save</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Modal */}
+          <div className="modal fade" id="profileModal" tabIndex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="profileModalLabel">Profile</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  <div className="text-center mb-3">
+                    <img
+                      src={user.avatar || 'https://via.placeholder.com/100'}
+                      alt="Avatar"
+                      className="rounded-circle"
+                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    />
+                  </div>
+                  <form onSubmit={handleProfileEdit}>
+                    <div className="mb-3">
+                      <label htmlFor="displayName" className="form-label fw-medium">Display Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="displayName"
+                        defaultValue={user.displayName}
+                        required
+                        aria-describedby="displayNameFeedback"
+                      />
+                      <div id="displayNameFeedback" className="form-feedback">Display name is required</div>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="avatar" className="form-label fw-medium">Avatar</label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        id="avatar"
+                        accept="image/*"
+                        aria-describedby="avatarFeedback"
+                      />
+                      <div id="avatarFeedback" className="form-feedback">Select a valid image file</div>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="email" className="form-label fw-medium">Email</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        id="email"
+                        value={user.email}
+                        disabled
+                      />
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Save</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Change Account Password Modal */}
+          <div className="modal fade" id="changePasswordModal" tabIndex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="changePasswordModalLabel">Change Password</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  {error && <div className="alert alert-danger alert-dismissible fade show" role="alert">{error}<button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>}
+                  <form onSubmit={handleAccountPasswordChange}>
+                    <div className="mb-3">
+                      <label htmlFor="currentPassword" className="form-label fw-medium">Current Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        id="currentPassword"
+                        required
+                        aria-describedby="currentPasswordFeedback"
+                      />
+                      <div id="currentPasswordFeedback" className="form-feedback">Current password is required</div>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="newPassword" className="form-label fw-medium">New Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        id="newPassword"
+                        required
+                        aria-describedby="newPasswordFeedback"
+                      />
+                      <div id="newPasswordFeedback" className="form-feedback">New password is required</div>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="confirmNewPassword" className="form-label fw-medium">Confirm New Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        id="confirmNewPassword"
+                        required
+                        aria-describedby="confirmNewPasswordFeedback"
+                      />
+                      <div id="confirmNewPasswordFeedback" className="form-feedback">Please confirm your password</div>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Change Password</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Label Management Modal */}
+          <div className="modal fade" id="labelManagementModal" tabIndex="-1" aria-labelledby="labelManagementModalLabel" aria-hidden="true">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title fw-semibold" id="labelManagementModalLabel">Manage Labels</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const newLabel = e.target.newLabel.value.trim();
+                    if (newLabel && !labels.includes(newLabel)) {
+                      setLabels(prev => [...prev, newLabel]);
+                      e.target.newLabel.value = '';
+                    }
+                  }}>
+                    <div className="mb-3">
+                      <label htmlFor="newLabel" className="form-label fw-medium">Add New Label</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="newLabel"
+                        placeholder="Enter new label"
+                        aria-describedby="newLabelFeedback"
+                      />
+                      <div id="newLabelFeedback" className="form-feedback">Label cannot be empty</div>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-medium">Add Label</button>
+                  </form>
+                  <h6 className="mt-4 fw-semibold">Existing Labels</h6>
+                  <ul className="list-group">
+                    {labels.map(label => (
+                      <li key={label} className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{label}</span>
+                        <div>
+                          <button
+                            className="btn btn-outline-primary btn-sm me-2"
+                            onClick={() => {
+                              const newName = prompt('Enter new label name:', label);
+                              if (newName && newName !== label && !labels.includes(newName)) {
+                                setLabels(prev => prev.map(l => l === label ? newName : l));
+                                setNotes(prev => prev.map(note => ({
+                                  ...note,
+                                  labels: note.labels.map(l => l === label ? newName : l)
+                                })));
+                              }
+                            }}
+                            aria-label={`Rename ${label}`}
+                          >
+                            Rename
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => {
+                              setLabels(prev => prev.filter(l => l !== label));
+                              setNotes(prev => prev.map(note => ({
+                                ...note,
+                                labels: note.labels.filter(l => l !== label)
+                              })));
+                            }}
+                            aria-label={`Delete ${label}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Render the app
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
