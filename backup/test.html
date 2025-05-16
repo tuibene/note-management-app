@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Note Management App</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Animate.css -->
+  <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+  <!-- Toastify CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      transition: background-color 0.3s, color 0.3s;
+      min-height: 100vh;
+    }
+    .dark-mode {
+      background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3d 100%);
+      color: #e0e0e0;
+    }
+    .dark-mode .card {
+      background-color: #2a2a3d;
+      color: #e0e0e0;
+      border: none;
+    }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .dark-mode .navbar {
+      background-color: #1e1e2f;
+    }
+    .note-card {
+      position: relative;
+      min-height: 150px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .note-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .note-icons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .note-icons span {
+      margin-left: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .note-icons span:hover {
+      transform: scale(1.2);
+    }
+    .grid-view .note-card {
+      width: 100%;
+    }
+    .list-view .note-card {
+      width: 100%;
+    }
+    .font-small { font-size: 14px; }
+    .font-medium { font-size: 16px; }
+    .font-large { font-size: 18px; }
+    .note-color-1 { background-color: #fefcbf; }
+    .note-color-2 { background-color: #c6f6d5; }
+    .note-color-3 { background-color: #bee3f8; }
+    .modal-content {
+      border-radius: 15px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .form-control.is-invalid {
+      border-color: #dc3545;
+    }
+    .form-control.is-valid {
+      border-color: #28a745;
+    }
+    .image-preview img {
+      max-width: 100px;
+      margin: 5px;
+      border-radius: 5px;
+    }
+    .sortable-ghost {
+      opacity: 0.5;
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body class="font-medium">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">Note App</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#" id="profileLink">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="settingsLink">Settings</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="backupLink">Backup</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="logoutLink">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container mt-4">
+    <!-- Login/Register Section -->
+    <div id="authSection" class="row d-none animate__animated animate__fadeIn">
+      <div class="col-md-6 col-lg-4 mx-auto">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title" id="authTitle">Login</h5>
+            <form id="authForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" required>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
+              </div>
+              <div class="mb-3 d-none" id="confirmPasswordGroup">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword">
+              </div>
+              <div class="mb-3 d-none" id="displayNameGroup">
+                <label for="displayName" class="form-label">Display Name</label>
+                <input type="text" class="form-control" id="displayName">
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="authButton">Login</button>
+              <a href="#" class="d-block mt-2 text-center" id="toggleAuth">Register instead</a>
+              <a href="#" class="d-block mt-2 text-center" id="forgotPassword">Forgot Password?</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div id="notesSection" class="row animate__animated animate__fadeIn">
+      <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between mb-3">
+          <div class="mb-2">
+            <button class="btn btn-primary me-2" id="createNote">Create Note</button>
+            <button class="btn btn-outline-secondary" id="toggleView">Grid View</button>
+          </div>
+          <div class="input-group w-auto flex-grow-1 mb-2" style="max-width: 400px;">
+            <input type="text" class="form-control" id="searchNotes" placeholder="Search notes...">
+          </div>
+        </div>
+        <!-- Labels -->
+        <div class="mb-3 d-flex flex-wrap">
+          <select class="form-select w-auto me-2 mb-2" id="filterLabel">
+            <option value="">All Labels</option>
+          </select>
+          <button class="btn btn-outline-secondary mb-2" id="manageLabels">Manage Labels</button>
+        </div>
+        <!-- Notes Display -->
+        <div class="row" id="notesContainer"></div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Note Create/Edit Modal -->
+    <div class="modal fade" id="noteModal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="noteModalTitle">Create Note</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="noteForm">
+              <div class="mb-3">
+                <label for="noteTitle" class="form-label">Title</label>
+                <input type="text" class="form-control" id="noteTitle" required>
+              </div>
+              <div class="mb-3">
+                <label for="noteContent" class="form-label">Content</label>
+                <textarea class="form-control" id="noteContent" rows="5" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="noteImages" class="form-label">Attach Images</label>
+                <input type="file" class="form-control" id="noteImages" multiple accept="image/*">
+                <div class="image-preview mt-2" id="imagePreview"></div>
+              </div>
+              <div class="mb-3">
+                <label for="noteLabels" class="form-label">Labels</label>
+                <select class="form-select" id="noteLabels" multiple></select>
+              </div>
+              <div class="mb-3">
+                <label for="notePassword" class="form-label">Note Password (Optional)</label>
+                <input type="password" class="form-control" id="notePassword">
+              </div>
+              <div class="mb-3">
+                <label for="shareEmail" class="form-label">Share with (Email)</label>
+                <input type="email" class="form-control" id="shareEmail">
+                <select class="form-select mt-2" id="sharePermission">
+                  <option value="view">View</option>
+                  <option value="edit">Edit</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="profileForm">
+              <div class="mb-3">
+                <label for="profileAvatar" class="form-label">Avatar</label>
+                <input type="file" class="form-control" id="profileAvatar" accept="image/*">
+                <img id="avatarPreview" class="img-fluid mt-2 rounded" style="max-width: 100px;" src="">
+              </div>
+              <div class="mb-3">
+                <label for="profileName" class="form-label">Display Name</label>
+                <input type="text" class="form-control" id="profileName">
+              </div>
+              <div class="mb-3">
+                <label for="oldPassword" class="form-label">Old Password</label>
+                <input type="password" class="form-control" id="oldPassword">
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword">
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Settings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="fontSize" class="form-label">Font Size</label>
+              <select class="form-select" id="fontSize">
+                <option value="font-small">Small</option>
+                <option value="font-medium" selected>Medium</option>
+                <option value="font-large">Large</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="noteColor" class="form-label">Note Color</label>
+              <select class="form-select" id="noteColor">
+                <option value="note-color-1">Yellow</option>
+                <option value="note-color-2">Green</option>
+                <option value="note-color-3">Blue</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="theme" class="form-label">Theme</label>
+              <select class="form-select" id="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <button class="btn btn-primary w-100" id="saveSettings">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Label Management Modal -->
+    <div class="modal fade" id="labelModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manage Labels</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="labelForm">
+              <div class="mb-3">
+                <label for="labelName" class="form-label">Label Name</label>
+                <input type="text" class="form-control" id="labelName" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Add Label</button>
+            </form>
+            <ul class="list-group mt-3" id="labelList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Forgot Password</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="forgotPasswordForm">
+              <div class="mb-3">
+                <label for="resetEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="resetEmail" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div class="modal fade" id="backupModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Backup & Restore</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <button class="btn btn-primary w-100" id="backupData">Download Backup</button>
+            </div>
+            <div class="mb-3">
+              <label for="restoreData" class="form-label">Upload Backup</label>
+              <input type="file" class="form-control" id="restoreData" accept=".json">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+  <!-- Toastify JS -->
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <!-- SortableJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <!-- JavaScript -->
+  <script>
+    // Simulated backend data
+    let user = JSON.parse(localStorage.getItem('user')) || null;
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    let labels = JSON.parse(localStorage.getItem('labels')) || [];
+    let isGridView = true;
+    let currentNoteId = null;
+
+    // Utility: Generate UUID
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
+    // Toast Notification
+    function showToast(message, type = 'success') {
+      Toastify({
+        text: message,
+        duration: 3000,
+        gravity: 'top',
+        position: 'right',
+        backgroundColor: type === 'success' ? '#28a745' : '#dc3545',
+        stopOnFocus: true
+      }).showToast();
+    }
+
+    // Form Validation
+    function validateForm(input) {
+      if (input.validity.valid) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+      } else {
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+      }
+    }
+
+    // Auth Section
+    const authSection = document.getElementById('authSection');
+    const notesSection = document.getElementById('notesSection');
+    const authForm = document.getElementById('authForm');
+    const authTitle = document.getElementById('authTitle');
+    const authButton = document.getElementById('authButton');
+    const toggleAuth = document.getElementById('toggleAuth');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+    const displayNameGroup = document.getElementById('displayNameGroup');
+
+    function toggleAuthMode() {
+      const isLogin = authTitle.textContent === 'Login';
+      authTitle.textContent = isLogin ? 'Register' : 'Login';
+      authButton.textContent = isLogin ? 'Register' : 'Login';
+      toggleAuth.textContent = isLogin ? 'Login instead' : 'Register instead';
+      confirmPasswordGroup.classList.toggle('d-none', !isLogin);
+      displayNameGroup.classList.toggle('d-none', !isLogin);
+      authForm.reset();
+      authForm.querySelectorAll('.form-control').forEach(input => {
+        input.classList.remove('is-valid', 'is-invalid');
+      });
+    }
+
+    authForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const displayName = document.getElementById('displayName').value;
+      if (authTitle.textContent === 'Register') {
+        if (password !== confirmPassword) {
+          showToast('Passwords do not match', 'error');
+          return;
+        }
+        user = { email, displayName, password, avatar: '', settings: { fontSize: 'font-medium', noteColor: 'note-color-1', theme: 'light' } };
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('Email activation sent to', email);
+        showToast('Registered! Activation email sent.');
+      } else {
+        if (user && user.email === email && user.password === password) {
+          showToast('Logged in successfully!');
+          authSection.classList.add('d-none');
+          notesSection.classList.remove('d-none');
+          applySettings();
+          renderNotes();
+          renderLabels();
+        } else {
+          showToast('Invalid credentials', 'error');
+        }
+      }
+    });
+
+    authForm.querySelectorAll('.form-control').forEach(input => {
+      input.addEventListener('input', () => validateForm(input));
+    });
+
+    toggleAuth.addEventListener('click', toggleAuthMode);
+    forgotPassword.addEventListener('click', () => {
+      new bootstrap.Modal(document.getElementById('forgotPasswordModal')).show();
+    });
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const resetEmail = document.getElementById('resetEmail').value;
+      console.log('Password reset link/OTP sent to', resetEmail);
+      showToast('Reset link sent!');
+      bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+    });
+
+    // Logout
+    document.getElementById('logoutLink').addEventListener('click', () => {
+      user = null;
+      localStorage.removeItem('user');
+      authSection.classList.remove('d-none');
+      notesSection.classList.add('d-none');
+      authForm.reset();
+      authTitle.textContent = 'Login';
+      authButton.textContent = 'Login';
+      toggleAuth.textContent = 'Register instead';
+      confirmPasswordGroup.classList.add('d-none');
+      displayNameGroup.classList.add('d-none');
+      showToast('Logged out successfully!');
+    });
+
+    // Profile
+    document.getElementById('profileLink').addEventListener('click', () => {
+      if (!user) {
+        showToast('Please log in', 'error');
+        return;
+      }
+      const modal = new bootstrap.Modal(document.getElementById('profileModal'));
+      document.getElementById('profileName').value = user.displayName;
+      document.getElementById('avatarPreview').src = user.avatar || '';
+      modal.show();
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const profileName = document.getElementById('profileName').value;
+      const oldPassword = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const profileAvatar = document.getElementById('profileAvatar').files[0];
+      if (oldPassword && oldPassword !== user.password) {
+        showToast('Old password incorrect', 'error');
+        return;
+      }
+      user.displayName = profileName;
+      if (newPassword) user.password = newPassword;
+      if (profileAvatar) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          user.avatar = reader.result;
+          document.getElementById('avatarPreview').src = user.avatar;
+          localStorage.setItem('user', JSON.stringify(user));
+        };
+        reader.readAsDataURL(profileAvatar);
+      }
+      localStorage.setItem('user', JSON.stringify(user));
+      showToast('Profile updated!');
+      bootstrap.Modal.getInstance(document.getElementById('profileModal')).hide();
+    });
+
+    // Settings
+    document.getElementById('settingsLink').addEventListener('click', () => {
+      if (!user) {
+        showToast('Please log in', 'error');
+        return;
+      }
+      const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+      document.getElementById('fontSize').value = user.settings.fontSize;
+      document.getElementById('noteColor').value = user.settings.noteColor;
+      document.getElementById('theme').value = user.settings.theme;
+      modal.show();
+    });
+
+    function applySettings() {
+      document.body.className = `${user.settings.fontSize} ${user.settings.theme === 'dark' ? 'dark-mode' : ''}`;
+      document.querySelector('.navbar').classList.toggle('dark-mode', user.settings.theme === 'dark');
+      renderNotes();
+    }
+
+    document.getElementById('saveSettings').addEventListener('click', () => {
+      user.settings.fontSize = document.getElementById('fontSize').value;
+      user.settings.noteColor = document.getElementById('noteColor').value;
+      user.settings.theme = document.getElementById('theme').value;
+      localStorage.setItem('user', JSON.stringify(user));
+      applySettings();
+      showToast('Settings saved!');
+      bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+    });
+
+    // Backup
+    document.getElementById('backupLink').addEventListener('click', () => {
+      if (!user) {
+        showToast('Please log in', 'error');
+        return;
+      }
+      new bootstrap.Modal(document.getElementById('backupModal')).show();
+    });
+
+    document.getElementById('backupData').addEventListener('click', () => {
+      const backup = { user, notes, labels };
+      const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'note-app-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Backup downloaded!');
+    });
+
+    document.getElementById('restoreData').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const backup = JSON.parse(reader.result);
+          user = backup.user;
+          notes = backup.notes;
+          labels = backup.labels;
+          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('notes', JSON.stringify(notes));
+          localStorage.setItem('labels', JSON.stringify(labels));
+          applySettings();
+          renderNotes();
+          renderLabels();
+          showToast('Data restored!');
+          bootstrap.Modal.getInstance(document.getElementById('backupModal')).hide();
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Notes
+    function renderNotes(filterLabel = '') {
+      const notesContainer = document.getElementById('notesContainer');
+      notesContainer.className = `row ${isGridView ? 'grid-view' : 'list-view'} animate__animated animate__fadeIn`;
+      notesContainer.innerHTML = '';
+      const filteredNotes = filterLabel ? notes.filter(note => note.labels.includes(filterLabel)) : notes;
+      const sortedNotes = filteredNotes.sort((a, b) => b.pinned - a.pinned);
+      sortedNotes.forEach(note => {
+        const col = document.createElement('div');
+        col.className = isGridView ? 'col-12 col-sm-6 col-md-4 mb-3' : 'col-12 mb-3';
+        col.setAttribute('data-note-id', note.id);
+        col.innerHTML = `
+          <div class="card note-card ${user?.settings?.noteColor || 'note-color-1'}">
+            <div class="card-body">
+              <h5 class="card-title">${note.title}</h5>
+              <p class="card-text">${note.content.substring(0, 100)}${note.content.length > 100 ? '...' : ''}</p>
+              ${note.images.length ? `<img src="${note.images[0]}" class="img-fluid mb-2 rounded" style="max-width: 100px;">` : ''}
+              <div class="note-icons">
+                ${note.pinned ? '<span class="badge bg-warning">📌</span>' : ''}
+                ${note.password ? '<span class="badge bg-danger">🔒</span>' : ''}
+                ${note.sharedWith.length ? '<span class="badge bg-info">👥</span>' : ''}
+                <span class="badge bg-primary" onclick="editNote('${note.id}')">✏️</span>
+                <span class="badge bg-danger" onclick="deleteNote('${note.id}')">🗑️</span>
+                <span class="badge bg-secondary" onclick="togglePin('${note.id}')">${note.pinned ? 'Unpin' : 'Pin'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        notesContainer.appendChild(col);
+      });
+      localStorage.setItem('notes', JSON.stringify(notes));
+      // Initialize SortableJS for pinned notes
+      if (filterLabel === '') {
+        new Sortable(notesContainer, {
+          filter: '.non-pinned',
+          group: 'pinned-notes',
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          onEnd: evt => {
+            const noteId = evt.item.getAttribute('data-note-id');
+            const newIndex = evt.newIndex;
+            const note = notes.find(n => n.id === noteId);
+            if (note.pinned) {
+              const pinnedNotes = notes.filter(n => n.pinned);
+              const nonPinnedNotes = notes.filter(n => !n.pinned);
+              pinnedNotes.splice(pinnedNotes.findIndex(n => n.id === noteId), 1);
+              pinnedNotes.splice(newIndex, 0, note);
+              notes = [...pinnedNotes, ...nonPinnedNotes];
+              localStorage.setItem('notes', JSON.stringify(notes));
+              renderNotes();
+            }
+          }
+        });
+      }
+    }
+
+    document.getElementById('createNote').addEventListener('click', () => {
+      if (!user) {
+        showToast('Please log in', 'error');
+        return;
+      }
+      currentNoteId = null;
+      document.getElementById('noteModalTitle').textContent = 'Create Note';
+      document.getElementById('noteForm').reset();
+      document.getElementById('imagePreview').innerHTML = '';
+      document.getElementById('noteLabels').innerHTML = labels.map(label => `<option value="${label}">${label}</option>`).join('');
+      new bootstrap.Modal(document.getElementById('noteModal')).show();
+    });
+
+    document.getElementById('noteImages').addEventListener('change', () => {
+      const files = document.getElementById('noteImages').files;
+      const imagePreview = document.getElementById('imagePreview');
+      imagePreview.innerHTML = '';
+      Array.from(files).forEach(file => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        imagePreview.appendChild(img);
+      });
+    });
+
+    document.getElementById('noteForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const title = document.getElementById('noteTitle').value;
+      const content = document.getElementById('noteContent').value;
+      const images = Array.from(document.getElementById('noteImages').files).map(file => URL.createObjectURL(file));
+      const noteLabels = Array.from(document.getElementById('noteLabels').selectedOptions).map(opt => opt.value);
+      const password = document.getElementById('notePassword').value;
+      const shareEmail = document.getElementById('shareEmail').value;
+      const permission = document.getElementById('sharePermission').value;
+      const note = {
+        id: currentNoteId || generateUUID(),
+        title,
+        content,
+        images,
+        labels: noteLabels,
+        password,
+        sharedWith: shareEmail ? [{ email: shareEmail, permission }] : [],
+        pinned: false,
+        lastEdited: Date.now()
+      };
+      if (currentNoteId) {
+        const index = notes.findIndex(n => n.id === currentNoteId);
+        notes[index] = note;
+      } else {
+        notes.push(note);
+      }
+      // Simulate WebSocket update
+      if (note.sharedWith.length) {
+        console.log('Real-time update sent to', note.sharedWith);
+      }
+      localStorage.setItem('notes', JSON.stringify(notes));
+      renderNotes();
+      showToast(currentNoteId ? 'Note updated!' : 'Note created!');
+      bootstrap.Modal.getInstance(document.getElementById('noteModal')).hide();
+    });
+
+    // Keyboard Shortcut
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (document.getElementById('noteModal').classList.contains('show')) {
+          document.getElementById('noteForm').dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+
+    function editNote(id) {
+      const note = notes.find(n => n.id === id);
+      if (note.password && !prompt('Enter note password')) {
+        showToast('Incorrect password', 'error');
+        return;
+      }
+      currentNoteId = id;
+      document.getElementById('noteModalTitle').textContent = 'Edit Note';
+      document.getElementById('noteTitle').value = note.title;
+      document.getElementById('noteContent').value = note.content;
+      document.getElementById('notePassword').value = note.password;
+      document.getElementById('shareEmail').value = note.sharedWith[0]?.email || '';
+      document.getElementById('sharePermission').value = note.sharedWith[0]?.permission || 'view';
+      document.getElementById('noteLabels').innerHTML = labels.map(label => `<option value="${label}" ${note.labels.includes(label) ? 'selected' : ''}>${label}</option>`).join('');
+      const imagePreview = document.getElementById('imagePreview');
+      imagePreview.innerHTML = note.images.map(src => `<img src="${src}">`).join('');
+      new bootstrap.Modal(document.getElementById('noteModal')).show();
+    }
+
+    function deleteNote(id) {
+      if (confirm('Are you sure you want to delete this note?')) {
+        notes = notes.filter(n => n.id !== id);
+        localStorage.setItem('notes', JSON.stringify(notes));
+        renderNotes();
+        showToast('Note deleted!');
+      }
+    }
+
+    function togglePin(id) {
+      const note = notes.find(n => n.id === id);
+      note.pinned = !note.pinned;
+      localStorage.setItem('notes', JSON.stringify(notes));
+      renderNotes();
+      showToast(note.pinned ? 'Note pinned!' : 'Note unpinned!');
+    }
+
+    // Auto-save simulation
+    document.getElementById('noteContent').addEventListener('input', () => {
+      if (currentNoteId) {
+        const note = notes.find(n => n.id === currentNoteId);
+        note.content = document.getElementById('noteContent').value;
+        note.lastEdited = Date.now();
+        localStorage.setItem('notes', JSON.stringify(notes));
+        showToast('Auto-saved!', 'success');
+      }
+    });
+
+    // Search
+    document.getElementById('searchNotes').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      const filteredNotes = notes.filter(note => note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query));
+      const notesContainer = document.getElementById('notesContainer');
+      notesContainer.innerHTML = '';
+      filteredNotes.forEach(note => {
+        const col = document.createElement('div');
+        col.className = isGridView ? 'col-12 col-sm-6 col-md-4 mb-3' : 'col-12 mb-3';
+        col.innerHTML = `
+          <div class="card note-card ${user?.settings?.noteColor || 'note-color-1'}">
+            <div class="card-body">
+              <h5 class="card-title">${note.title}</h5>
+              <p class="card-text">${note.content.substring(0, 100)}${note.content.length > 100 ? '...' : ''}</p>
+              ${note.images.length ? `<img src="${note.images[0]}" class="img-fluid mb-2 rounded" style="max-width: 100px;">` : ''}
+              <div class="note-icons">
+                ${note.pinned ? '<span class="badge bg-warning">📌</span>' : ''}
+                ${note.password ? '<span class="badge bg-danger">🔒</span>' : ''}
+                ${note.sharedWith.length ? '<span class="badge bg-info">👥</span>' : ''}
+                <span class="badge bg-primary" onclick="editNote('${note.id}')">✏️</span>
+                <span class="badge bg-danger" onclick="deleteNote('${note.id}')">🗑️</span>
+                <span class="badge bg-secondary" onclick="togglePin('${note.id}')">${note.pinned ? 'Unpin' : 'Pin'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        notesContainer.appendChild(col);
+      });
+    });
+
+    // Labels
+    function renderLabels() {
+      const filterLabel = document.getElementById('filterLabel');
+      filterLabel.innerHTML = '<option value="">All Labels</option>' + labels.map(label => `<option value="${label}">${label}</option>`).join('');
+      const labelList = document.getElementById('labelList');
+      labelList.innerHTML = labels.map(label => `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          ${label}
+          <button class="btn btn-danger btn-sm" onclick="deleteLabel('${label}')">Delete</button>
+        </li>
+      `).join('');
+    }
+
+    document.getElementById('manageLabels').addEventListener('click', () => {
+      renderLabels();
+      new bootstrap.Modal(document.getElementById('labelModal')).show();
+    });
+
+    document.getElementById('labelForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const labelName = document.getElementById('labelName').value;
+      if (!labels.includes(labelName)) {
+        labels.push(labelName);
+        localStorage.setItem('labels', JSON.stringify(labels));
+        renderLabels();
+        document.getElementById('labelForm').reset();
+        showToast('Label added!');
+      } else {
+        showToast('Label already exists', 'error');
+      }
+    });
+
+    function deleteLabel(label) {
+      labels = labels.filter(l => l !== label);
+      notes.forEach(note => note.labels = note.labels.filter(l => l !== label));
+      localStorage.setItem('labels', JSON.stringify(labels));
+      localStorage.setItem('notes', JSON.stringify(notes));
+      renderLabels();
+      renderNotes();
+      showToast('Label deleted!');
+    }
+
+    // View Toggle
+    document.getElementById('toggleView').addEventListener('click', () => {
+      isGridView = !isGridView;
+      document.getElementById('toggleView').textContent = isGridView ? 'List View' : 'Grid View';
+      renderNotes();
+    });
+
+    // Filter by Label
+    document.getElementById('filterLabel').addEventListener('change', e => {
+      renderNotes(e.target.value);
+    });
+
+    // Initial Render
+    if (user) {
+      authSection.classList.add('d-none');
+      notesSection.classList.remove('d-none');
+      applySettings();
+      renderNotes();
+      renderLabels();
+    }
+  </script>
+</body>
+</html>

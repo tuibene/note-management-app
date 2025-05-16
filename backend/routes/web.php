@@ -12,7 +12,15 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+// use App\Http\Controllers\Auth\ResetPasswordController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+// Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset');
+
+Route::get('/reset-password', function () {
+    return file_get_contents(public_path('reset-password.html'));
+})->name('password.reset');
+
+Route::get('/{any}', function () {
+    return file_get_contents(public_path('login.blade.php'));
+})->where('any', '.*');
