@@ -1,0 +1,60 @@
+body { background-color: #f5f5f5; }
+.sidebar { height: 100vh; position: sticky; top: 0; background-color: #ffffff; border-right: 1px solid #e9ecef; }
+.sidebar .nav-link { color: #495057; padding: 0.75rem 1rem; border-radius: 0.25rem; }
+.sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #e9ecef; color: #0d6efd; }
+.content { padding: 2rem; }
+.card { border: none; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+.card-header { background-color: #ffffff; border-bottom: 1px solid #e9ecef; }
+.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
+.btn-primary:hover { background-color: #0b5ed7; border-color: #0a58ca; }
+.form-control, .form-select { border-radius: 0.375rem; }
+.form-select[multiple] { height: 100px; }
+.accordion-button { font-weight: 500; }
+.accordion-button:not(.collapsed) { background-color: #f8f9fa; color: #0d6efd; }
+.note-card, .label-card, .user-card { transition: transform 0.2s; }
+.note-card:hover, .label-card:hover, .user-card:hover { transform: translateY(-5px); }
+.note-label, .label-badge { font-size: 0.85rem; padding: 0.2rem 0.5rem; }
+.note-actions { position: absolute; bottom: 10px; right: 10px; }
+.note-actions .btn { font-size: 0.9rem; padding: 0.25rem 0.5rem; }
+.notes-grid .note-card-container { margin-bottom: 1rem; }
+.notes-list .note-card-container { width: 100%; margin-bottom: 1rem; }
+.notes-list .note-card { flex-direction: row; align-items: center; padding: 1rem; }
+.notes-list .note-card .card-body { flex: 1; }
+.notes-list .note-card .note-actions { position: static; margin-left: 1rem; }
+.notes-list .note-card .card-title { margin-bottom: 0.5rem; }
+.notes-list .note-card .card-text { margin-bottom: 0.25rem; }
+.lock-status { font-size: 1rem; vertical-align: middle; }
+.lock-status.locked { color: #dc3545; }
+.lock-status.unlocked { color: #28a745; }
+.modal-footer .btn { min-width: 100px; }
+.modal-body .form-control, .modal-body .form-select { margin-bottom: 1rem; }
+.labels-management .btn i, .preferences-management .btn i { font-size: 1.2rem; vertical-align: middle; }
+.labels-management .btn, .preferences-management .btn { padding: 0.5rem 1rem; }
+#labelFilter { max-width: 200px; }
+@media (max-width: 768px) {
+    .sidebar { height: auto; position: relative; }
+    .content { padding: 1rem; }
+    .notes-list .note-card { flex-direction: column; align-items: flex-start; }
+    .notes-list .note-card .note-actions { margin-left: 0; margin-top: 1rem; }
+    #labelFilter { max-width: 100%; }
+}
+select[multiple] {
+    width: 100%;
+    height: 150px; /* Larger for better visibility */
+    padding: 10px;
+    overflow-y: auto;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    background-color: #fff;
+}
+select[multiple] option {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+select[multiple] option:hover {
+    background-color: #f0f0f0;
+}
+select[multiple] option:checked {
+    background-color: #007bff;
+    color: #fff;
+}

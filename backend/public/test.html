@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 sidebar">
+                <h4 class="p-3">Note App</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#authentication">Authentication</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#user-actions">User Actions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#notes-management">Notes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#advanced-notes">Advanced Notes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#labels-management">Labels</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#preferences-management">Preferences</a></li>
+                </ul>
+            </nav>
+            <main class="col-md-9 ms-sm-auto col-lg-10 content">
+                <div id="emailVerificationModal" class="modal fade" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Email Verification Result</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p id="emailVerificationResult"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <div class="accordion" id="authAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#registerCollapse">
+                                    Register
+                                </button>
+                            </h2>
+                            <div id="registerCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="registerEmail" class="form-label">Email:</label>
+                                        <input type="email" class="form-control" id="registerEmail">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="registerName" class="form-label">Display Name:</label>
+                                        <input type="text" class="form-control" id="registerName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="registerPassword" class="form-label">Password:</label>
+                                        <input type="password" class="form-control" id="registerPassword">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="registerPasswordConfirmation" class="form-label">Confirm Password:</label>
+                                        <input type="password" class="form-control" id="registerPasswordConfirmation">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="register()">Register</button>
+                                    <p id="registerStatus" class="mt-2"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#loginCollapse">
+                                    Login
+                                </button>
+                            </h2>
+                            <div id="loginCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="loginEmail" class="form-label">Email:</label>
+                                        <input type="email" class="form-control" id="loginEmail">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="loginPassword" class="form-label">Password:</label>
+                                        <input type="password" class="form-control" id="loginPassword">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="login()">Login</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#resetRequestCollapse">
+                                    Password Reset Request
+                                </button>
+                            </h2>
+                            <div id="resetRequestCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="resetRequestEmail" class="form-label">Email:</label>
+                                        <input type="email" class="form-control" id="resetRequestEmail">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="resetRequest()">Request Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#resetPasswordCollapse">
+                                    Password Reset
+                                </button>
+                            </h2>
+                            <div id="resetPasswordCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="resetEmail" class="form-label">Email:</label>
+                                        <input type="email" class="form-control" id="resetEmail">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="resetToken" class="form-label">Reset Token:</label>
+                                        <input type="text" class="form-control" id="resetToken">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="resetPassword" class="form-label">New Password:</label>
+                                        <input type="password" class="form-control" id="resetPassword">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="resetPasswordConfirmation" class="form-label">Confirm Password:</label>
+                                        <input type="password" class="form-control" id="resetPasswordConfirmation">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="resetPassword()">Reset Password</button>
+                                    <p id="resetStatus" class="mt-2"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="user-actions">
+                    <h2>User Actions</h2>
+                    <div class="mb-3">
+                        <button class="btn btn-primary me-2" onclick="getUserInfo()">Get User Info</button>
+                        <button class="btn btn-secondary me-2" onclick="logout()">Logout</button>
+                        <button class="btn btn-info" onclick="sendEmailVerification()">Send Email Verification</button>
+                    </div>
+                    <div id="user-container" class="row"></div>
+                </section>
+
+                <section id="update-profile">
+                    <h2>Update Profile</h2>
+                    <div class="mb-3">
+                        <label for="updateDisplayName" class="form-label">Display Name:</label>
+                        <input type="text" class="form-control" id="updateDisplayName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="updateAvatar" class="form-label">Avatar:</label>
+                        <input type="file" class="form-control" id="updateAvatar" accept="image/*">
+                    </div>
+                    <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+                    <p id="updateProfileStatus" class="mt-2"></p>
+                </section>
+
+                <section id="change-password">
+                    <h2>Change Password</h2>
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password:</label>
+                        <input type="password" class="form-control" id="currentPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password:</label>
+                        <input type="password" class="form-control" id="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmNewPassword" class="form-label">Confirm New Password:</label>
+                        <input type="password" class="form-control" id="confirmNewPassword">
+                    </div>
+                    <button class="btn btn-primary" onclick="changePassword()">Change Password</button>
+                </section>
+
+                <section id="notes-management">
+                    <h2>Notes Management</h2>
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNoteModal">Create Note</button>
+                        <select id="noteViewToggle" class="form-select w-auto" onchange="toggleNoteView()">
+                            <option value="grid">Grid View</option>
+                            <option value="list">List View</option>
+                        </select>
+                        <select id="labelFilter" class="form-select w-auto">
+                            <option value="">All Notes</option>
+                        </select>
+                        <input type="text" id="titleSearch" class="form-control w-auto" placeholder="Search by title...">
+                    </div>
+                    <div id="notes-container" class="row notes-grid"></div>
+                </section>
+
+                <div class="modal" id="createNoteModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Create Note</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="createNoteTitle" class="form-label">Title:</label>
+                                    <input type="text" class="form-control" id="createNoteTitle">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="createNoteContent" class="form-label">Content:</label>
+                                    <textarea class="form-control" id="createNoteContent"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="createNoteLabels" class="form-label">Labels:</label>
+                                    <select id="createNoteLabels" class="form-select" multiple></select>
+                                    <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple labels.</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="createNote()">Create Note</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" id="updateNoteModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Note</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="updateNoteId">
+                                <div class="mb-3">
+                                    <label for="updateNoteTitle" class="form-label">Title:</label>
+                                    <input type="text" class="form-control" id="updateNoteTitle">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="updateNoteContent" class="form-label">Content:</label>
+                                    <textarea class="form-control" id="updateNoteContent"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="updateNoteLabels" class="form-label">Labels:</label>
+                                    <select id="updateNoteLabels" class="form-select" multiple></select>
+                                    <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple labels.</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="updateNote()">Update Note</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" id="deleteNoteModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Delete Note</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="deleteNoteId">
+                                <p>Are you sure you want to delete this note?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-danger" onclick="deleteNote()">Delete Note</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="advanced-notes">
+                    <h2>Advanced Notes Management</h2>
+                    <div class="accordion" id="advancedNotesAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#shareNoteCollapse">
+                                    Share Note
+                                </button>
+                            </h2>
+                            <div id="shareNoteCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="shareNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="shareNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="shareEmails" class="form-label">Emails (comma-separated):</label>
+                                        <input type="text" class="form-control" id="shareEmails">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="sharePermission" class="form-label">Permission:</label>
+                                        <select id="sharePermission" class="form-select">
+                                            <option value="read">Read</option>
+                                            <option value="edit">Edit</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="shareNote()">Share Note</button>
+                                    <p id="shareStatus" class="mt-2"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#revokeShareCollapse">
+                                    Revoke Share
+                                </button>
+                            </h2>
+                            <div id="revokeShareCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="revokeShareNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="revokeShareNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="revokeShareEmail" class="form-label">Email:</label>
+                                        <input type="email" class="form-control" id="revokeShareEmail">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="revokeShare()">Revoke Share</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#getSharedNotesCollapse">
+                                    Get Shared Notes
+                                </button>
+                            </h2>
+                            <div id="getSharedNotesCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <button class="btn btn-primary" onclick="getSharedNotes()">Get Shared Notes</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#createPasswordCollapse">
+                                    Create Password for Note
+                                </button>
+                            </h2>
+                            <div id="createPasswordCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="createPasswordNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="createPasswordNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="createNotePassword" class="form-label">Password:</label>
+                                        <input type="password" class="form-control" id="createNotePassword">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="createNotePasswordConfirmation" class="form-label">Confirm Password:</label>
+                                        <input type="password" class="form-control" id="createNotePasswordConfirmation">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="createPassword()">Create Password</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#changeNotePasswordCollapse">
+                                    Change Note Password
+                                </button>
+                            </h2>
+                            <div id="changeNotePasswordCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="changePasswordNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="changePasswordNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="currentNotePassword" class="form-label">Current Password:</label>
+                                        <input type="password" class="form-control" id="currentNotePassword">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newNotePassword" class="form-label">New Password:</label>
+                                        <input type="password" class="form-control" id="newNotePassword">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newNotePasswordConfirmation" class="form-label">Confirm New Password:</label>
+                                        <input type="password" class="form-control" id="newNotePasswordConfirmation">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="changeNotePassword()">Change Password</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#unlockNoteCollapse">
+                                    Unlock Note
+                                </button>
+                            </h2>
+                            <div id="unlockNoteCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="unlockNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="unlockNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="unlockNotePassword" class="form-label">Password:</label>
+                                        <input type="password" class="form-control" id="unlockNotePassword">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="unlockNote()">Unlock Note</button>
+                                    <p id="unlockStatus" class="mt-2"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#uploadImagesCollapse">
+                                    Upload Images for Note
+                                </button>
+                            </h2>
+                            <div id="uploadImagesCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="uploadNoteId" class="form-label">Note ID:</label>
+                                        <input type="text" class="form-control" id="uploadNoteId">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="noteImageUpload" class="form-label">Images:</label>
+                                        <input type="file" class="form-control" id="noteImageUpload" multiple accept="image/*">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="uploadImagesForNote()">Upload Images</button>
+                                    <p id="uploadStatus" class="mt-2"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="labels-management">
+                    <h2>Labels Management</h2>
+                    <div class="mb-3">
+                        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createLabelModal">Create Label</button>
+                        <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#updateLabelModal">Update Label</button>
+                        <button class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteLabelModal">Delete Label</button>
+                        <button class="btn btn-info" onclick="getLabels()">List Labels</button>
+                    </div>
+                    <div id="labels-container" class="row"></div>
+                </section>
+
+                <div class="modal" id="createLabelModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Create Label</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="createLabelName" class="form-label">Label Name:</label>
+                                    <input type="text" class="form-control" id="createLabelName">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="createLabel()">Create Label</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" id="updateLabelModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Label</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="updateLabelName" class="form-label">Current Label Name:</label>
+                                    <input type="text" class="form-control" id="updateLabelName">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newLabelName" class="form-label">New Label Name:</label>
+                                    <input type="text" class="form-control" id="newLabelName">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="updateLabel()">Update Label</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" id="deleteLabelModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Delete Label</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="deleteLabelName" class="form-label">Label Name:</label>
+                                    <input type="text" class="form-control" id="deleteLabelName">
+                                </div>
+                                <p>Are you sure you want to delete this label?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-danger" onclick="deleteLabel()">Delete Label</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="preferences-management">
+                    <h2>Preferences Management</h2>
+                    <div class="mb-3">
+                        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#getPreferencesModal">Get Preferences</button>
+                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#updatePreferencesModal">Update Preferences</button>
+                    </div>
+                </section>
+
+                <div class="modal" id="getPreferencesModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Get Preferences</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Click below to retrieve your preferences.</p>
+                                <p id="getPreferencesStatus"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="getPreferences()">Get Preferences</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" id="updatePreferencesModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Preferences</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="fontSizePreference" class="form-label">Font Size:</label>
+                                    <select id="fontSizePreference" class="form-select">
+                                        <option value="12px">12px</option>
+                                        <option value="14px">14px</option>
+                                        <option value="16px">16px</option>
+                                        <option value="18px">18px</option>
+                                        <option value="20px">20px</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="noteColorPreference" class="form-label">Note Color:</label>
+                                    <input type="color" class="form-control form-control-color" id="noteColorPreference">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="themePreference" class="form-label">Theme:</label>
+                                    <select id="themePreference" class="form-select">
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="updatePreferences()">Update Preferences</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>

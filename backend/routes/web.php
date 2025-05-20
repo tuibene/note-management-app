@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Route;
 // Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset');
 
 Route::get('/reset-password', function () {
-    return file_get_contents(public_path('reset-password.html'));
+    return file_get_contents(public_path('test.html'));
 })->name('password.reset');
 
 Route::get('/{any}', function () {
-    return file_get_contents(public_path('login.blade.php'));
+    return file_get_contents(public_path('test.html'));
 })->where('any', '.*');

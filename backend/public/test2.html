@@ -1,0 +1,826 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Note Management App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        section { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; }
+        input, select, button { margin: 5px; padding: 5px; }
+        .unlocked { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Note Management App</h1>
+
+    <section id="email-verification-result">
+        <h2>Email Verification Result</h2>
+        <p id="verification-message"></p>
+    </section>
+
+    <section id="auth">
+        <h2>Authentication</h2>
+        <div id="register-form">
+            <h3>Register</h3>
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="text" id="registerName" placeholder="Display Name">
+            <input type="password" id="registerPassword" placeholder="Password">
+            <input type="password" id="registerPasswordConfirmation" placeholder="Confirm Password">
+            <button onclick="register()">Register</button>
+            <p id="registerStatus" class="error"></p>
+        </div>
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="text" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+        <div id="reset-request-form">
+            <h3>Password Reset Request</h3>
+            <input type="text" id="resetRequestEmail" placeholder="Email">
+            <button onclick="resetRequest()">Request Reset</button>
+        </div>
+        <div id="reset-form">
+            <h3>Password Reset</h3>
+            <input type="email" id="resetEmail" placeholder="Email">
+            <input type="text" id="resetToken" placeholder="Token">
+            <input type="password" id="resetPassword" placeholder="New Password">
+            <input type="password" id="resetPasswordConfirmation" placeholder="Confirm Password">
+            <button onclick="resetPassword()">Reset Password</button>
+            <p id="resetStatus" class="error"></p>
+        </div>
+    </section>
+
+    <section id="user-actions">
+        <h2>User Actions</h2>
+        <button onclick="getUserInfo()">Get User Info</button>
+        <button onclick="logout()">Logout</button>
+        <button onclick="sendEmailVerification()">Send Email Verification</button>
+    </section>
+
+    <section id="update-profile">
+        <h2>Update Profile</h2>
+        <input type="text" id="updateDisplayName" placeholder="New Display Name">
+        <input type="file" id="updateAvatar" accept="image/*">
+        <button onclick="updateProfile()">Update Profile</button>
+        <p id="updateProfileStatus"></p>
+    </section>
+
+    <section id="change-password">
+        <h2>Change Password</h2>
+        <input type="password" id="currentPassword" placeholder="Current Password">
+        <input type="password" id="newPassword" placeholder="New Password">
+        <input type="password" id="confirmNewPassword" placeholder="Confirm New Password">
+        <button onclick="changePassword()">Change Password</button>
+    </section>
+
+    <section id="notes-management">
+        <h2>Notes Management</h2>
+        <div id="list-notes">
+            <h3>List Notes</h3>
+            <button onclick="getNotes()">Get Notes</button>
+        </div>
+        <div id="create-note">
+            <h3>Create Note</h3>
+            <input type="text" id="createNoteTitle" placeholder="Title">
+            <textarea id="createNoteContent" placeholder="Content"></textarea>
+            <button onclick="createNote()">Create Note</button>
+        </div>
+        <div id="update-note">
+            <h3>Update Note</h3>
+            <input type="text" id="updateNoteId" placeholder="Note ID">
+            <input type="text" id="updateNoteTitle" placeholder="New Title">
+            <textarea id="updateNoteContent" placeholder="New Content"></textarea>
+            <button onclick="updateNote()">Update Note</button>
+        </div>
+        <div id="delete-note">
+            <h3>Delete Note</h3>
+            <input type="text" id="deleteNoteId" placeholder="Note ID">
+            <button onclick="deleteNote()">Delete Note</button>
+        </div>
+    </section>
+
+    <section id="advanced-notes-management">
+        <h2>Advanced Notes Management</h2>
+        <div id="share-note">
+            <h3>Share Note</h3>
+            <input type="text" id="shareNoteId" placeholder="Note ID">
+            <input type="text" id="shareEmails" placeholder="Emails (comma-separated)">
+            <select id="sharePermission">
+                <option value="read">Read</option>
+                <option value="edit">Edit</option>
+            </select>
+            <button onclick="shareNote()">Share Note</button>
+            <p id="shareStatus"></p>
+        </div>
+        <div id="revoke-share">
+            <h3>Revoke Share</h3>
+            <input type="text" id="revokeShareNoteId" placeholder="Note ID">
+            <input type="text" id="revokeShareEmail" placeholder="Email to Revoke">
+            <button onclick="revokeShare()">Revoke Share</button>
+        </div>
+        <div id="get-shared-notes">
+            <h3>Get Shared Notes</h3>
+            <button onclick="getSharedNotes()">Get Shared Notes</button>
+        </div>
+        <div id="create-password">
+            <h3>Create Password for Note</h3>
+            <input type="text" id="createPasswordNoteId" placeholder="Note ID">
+            <input type="password" id="createNotePassword" placeholder="Password">
+            <input type="password" id="createNotePasswordConfirmation" placeholder="Confirm Password">
+            <button onclick="createPassword()">Create Password</button>
+        </div>
+        <div id="change-note-password">
+            <h3>Change Note Password</h3>
+            <input type="text" id="changePasswordNoteId" placeholder="Note ID">
+            <input type="password" id="currentNotePassword" placeholder="Current Password">
+            <input type="password" id="newNotePassword" placeholder="New Password">
+            <input type="password" id="newNotePasswordConfirmation" placeholder="Confirm New Password">
+            <button onclick="changeNotePassword()">Change Password</button>
+        </div>
+        <div id="unlock-note">
+            <h3>Unlock Note</h3>
+            <input type="text" id="unlockNoteId" placeholder="Note ID">
+            <input type="password" id="unlockNotePassword" placeholder="Password">
+            <button onclick="unlockNote()">Unlock Note</button>
+            <p id="unlockStatus"></p>
+        </div>
+        <div id="upload-images-for-note">
+            <h3>Upload Images for Note</h3>
+            <input type="text" id="uploadNoteId" placeholder="Note ID">
+            <input type="file" id="noteImageUpload" multiple>
+            <button onclick="uploadImagesForNote()">Upload Images</button>
+            <p id="uploadStatus"></p>
+        </div>
+    </section>
+
+    <section id="labels-management">
+        <h2>Labels Management</h2>
+        <div id="list-labels">
+            <h3>List Labels</h3>
+            <button onclick="getLabels()">Get Labels</button>
+        </div>
+        <div id="create-label">
+            <h3>Create Label</h3>
+            <input type="text" id="createLabelName" placeholder="Label Name">
+            <button onclick="createLabel()">Create Label</button>
+        </div>
+        <div id="update-label">
+            <h3>Update Label</h3>
+            <input type="text" id="updateLabelName" placeholder="Current Label Name">
+            <input type="text" id="newLabelName" placeholder="New Label Name">
+            <button onclick="updateLabel()">Update Label</button>
+        </div>
+        <div id="delete-label">
+            <h3>Delete Label</h3>
+            <input type="text" id="deleteLabelName" placeholder="Label Name">
+            <button onclick="deleteLabel()">Delete Label</button>
+        </div>
+    </section>
+
+    <section id="preferences-management">
+        <h2>Preferences Management</h2>
+        <div id="get-preferences">
+            <h3>Get Preferences</h3>
+            <button onclick="getPreferences()">Get Preferences</button>
+        </div>
+        <div id="update-preferences">
+            <h3>Update Preferences</h3>
+            <label for="fontSizePreference">Font Size:</label>
+            <select id="fontSizePreference">
+                <option value="12px">12px</option>
+                <option value="14px">14px</option>
+                <option value="16px" selected>16px</option>
+                <option value="18px">18px</option>
+                <option value="20px">20px</option>
+            </select>
+            <label for="noteColorPreference">Note Color:</label>
+            <input type="color" id="noteColorPreference" value="#ffffff">
+            <label for="themePreference">Theme:</label>
+            <select id="themePreference">
+                <option value="light" selected>Light</option>
+                <option value="dark">Dark</option>
+            </select>
+            <button onclick="updatePreferences()">Update Preferences</button>
+            <p id="preferenceStatus"></p>
+        </div>
+    </section>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let token = localStorage.getItem('token');
+        let unlockedNotes = new Set();
+        let lockedNotes = new Set();
+
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const display_name = document.getElementById('registerName').value;
+            const password = document.getElementById('registerPassword').value;
+            const password_confirmation = document.getElementById('registerPasswordConfirmation').value;
+            const statusElement = document.getElementById('registerStatus');
+
+            if (!email || !display_name || !password || !password_confirmation) {
+                statusElement.textContent = 'All fields are required.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, display_name, password, password_confirmation })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const message = errorData.message || `HTTP error ${response.status}`;
+                    statusElement.textContent = message;
+                    alert('Registration failed: ' + message);
+                    console.error('Registration failed:', errorData);
+                    return;
+                }
+
+                const data = await response.json();
+                token = data.token;
+                localStorage.setItem('token', token);
+                statusElement.textContent = 'Registration successful! Please verify your email.';
+                statusElement.className = 'unlocked';
+                alert('Registration successful!');
+                console.log('Registration successful:', data);
+            } catch (error) {
+                statusElement.textContent = `Error: ${error.message}`;
+                alert('Failed to register: ' + error.message);
+                console.error('Registration error:', error);
+            }
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            }).then(response => response.json()).then(data => {
+                if (data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    alert('Login successful!');
+                } else {
+                    alert('Login failed: ' + data.message);
+                }
+            });
+        }
+
+        function resetRequest() {
+            const email = document.getElementById('resetRequestEmail').value;
+            fetch(`${API_URL}/password/reset-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            }).then(response => response.json()).then(data => alert(data.message));
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('resetEmail').value;
+            const token = document.getElementById('resetToken').value;
+            const password = document.getElementById('resetPassword').value;
+            const password_confirmation = document.getElementById('resetPasswordConfirmation').value;
+            const statusElement = document.getElementById('resetStatus');
+
+            if (!email || !token || !password || !password_confirmation) {
+                statusElement.textContent = 'All fields are required.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/password/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, token, password, password_confirmation })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const message = errorData.message || `HTTP error ${response.status}`;
+                    statusElement.textContent = message;
+                    alert('Password reset failed: ' + message);
+                    console.error('Password reset failed:', errorData);
+                    return;
+                }
+
+                const data = await response.json();
+                statusElement.textContent = 'Password reset successfully.';
+                statusElement.className = 'unlocked';
+                alert('Password reset successful!');
+                console.log('Password reset successful:', data);
+            } catch (error) {
+                statusElement.textContent = `Error: ${error.message}`;
+                alert('Failed to reset password: ' + error.message);
+                console.error('Password reset error:', error);
+            }
+        }
+
+        function getUserInfo() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/user`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => console.log('User Info:', data));
+        }
+
+        function logout() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/logout`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => {
+                localStorage.removeItem('token');
+                token = null;
+                unlockedNotes.clear();
+                lockedNotes.clear();
+                alert(data.message);
+            });
+        }
+
+        function sendEmailVerification() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/email/verification-notification`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => alert(data.message));
+        }
+
+        async function updateProfile() {
+            if (!token) return alert('Please log in first.');
+            const displayNameElement = document.getElementById('updateDisplayName');
+            const avatarElement = document.getElementById('updateAvatar');
+            const statusElement = document.getElementById('updateProfileStatus');
+            if (!displayNameElement || !avatarElement || !statusElement) {
+                alert('One or more form elements are missing.');
+                return;
+            }
+            const display_name = displayNameElement.value;
+            const avatar = avatarElement.files[0];
+            if (!display_name) {
+                alert('Please enter a new display name.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('display_name', display_name);
+            if (avatar) {
+                formData.append('avatar', avatar);
+            }
+            try {
+                const response = await fetch(`${API_URL}/user/profile`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                    body: formData,
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP error ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Profile updated:', data);
+                statusElement.textContent = `Profile updated: ${data.displayName}${data.avatar ? ', avatar uploaded' : ''}`;
+                statusElement.className = 'unlocked';
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Update Profile Error:', error);
+                statusElement.textContent = `Error updating profile: ${error.message}`;
+                statusElement.className = '';
+                alert('Failed to update profile: ' + error.message);
+            }
+        }
+
+        function changePassword() {
+            if (!token) return alert('Please log in first.');
+            const currentPassword = document.getElementById('currentPassword').value;
+            const password = document.getElementById('newPassword').value;
+            const password_confirmation = document.getElementById('confirmNewPassword').value;
+            fetch(`${API_URL}/user/password`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: currentPassword, password, password_confirmation }),
+            }).then(response => response.json()).then(data => alert(data.message));
+        }
+
+        function getNotes() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/notes`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => console.log('Notes:', data));
+        }
+
+        function createNote() {
+            if (!token) return alert('Please log in first.');
+            const title = document.getElementById('createNoteTitle').value;
+            const content = document.getElementById('createNoteContent').value;
+            fetch(`${API_URL}/notes`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content }),
+            }).then(response => response.json()).then(data => alert('Note created!'));
+        }
+
+        function updateNote() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('updateNoteId').value;
+            const title = document.getElementById('updateNoteTitle').value;
+            const content = document.getElementById('updateNoteContent').value;
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                fetch(`${API_URL}/notes/${noteId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content }),
+                }).then(response => response.json()).then(data => alert('Note updated!'));
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        function deleteNote() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('deleteNoteId').value;
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                fetch(`${API_URL}/notes/${noteId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                }).then(response => response.json()).then(data => alert(data.message));
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        async function shareNote() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('shareNoteId').value;
+            const emails = document.getElementById('shareEmails').value.split(',').map(email => email.trim()).filter(email => email);
+            const permission = document.getElementById('sharePermission').value;
+            const statusElement = document.getElementById('shareStatus');
+            if (!noteId || emails.length === 0) return alert('Please enter a Note ID and at least one email.');
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                try {
+                    const response = await fetch(`${API_URL}/notes/${noteId}/share`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ emails, permission }),
+                    });
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('Response:', text);
+                        throw new Error(`HTTP error ${response.status}: ${text.startsWith('<!DOCTYPE') ? 'Received HTML instead of JSON' : text}`);
+                    }
+                    const data = await response.json();
+                    console.log('Note shared:', data);
+                    const successEmails = data.shared_with
+                        .filter(item => item.status === 'email_sent')
+                        .map(item => `${item.email} (${item.permission})`);
+                    const failedEmails = data.shared_with
+                        .filter(item => item.status === 'email_failed')
+                        .map(item => `${item.email} (${item.permission})`);
+                    let statusMessage = '';
+                    if (successEmails.length > 0) {
+                        statusMessage += `Shared with: ${successEmails.join(', ')}`;
+                    }
+                    if (failedEmails.length > 0) {
+                        statusMessage += `${successEmails.length > 0 ? '; ' : ''}Failed to send email to: ${failedEmails.join(', ')}`;
+                    }
+                    statusElement.textContent = statusMessage;
+                    statusElement.className = failedEmails.length > 0 ? 'error' : 'unlocked';
+                    alert(data.message || 'Note shared successfully!');
+                } catch (error) {
+                    console.error('Share Note Error:', error);
+                    statusElement.textContent = `Error: ${error.message}`;
+                    statusElement.className = 'error';
+                    alert('Failed to share note: ' + error.message);
+                }
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        async function revokeShare() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('revokeShareNoteId').value;
+            const email = document.getElementById('revokeShareEmail').value;
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                try {
+                    const response = await fetch(`${API_URL}/notes/${noteId}/share`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email }),
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Failed to revoke share');
+                    }
+                    const data = await response.json();
+                    console.log('Share revoked:', data);
+                    alert(data.message);
+                } catch (error) {
+                    console.error('Revoke Share Error:', error);
+                    alert('Failed to revoke share: ' + error.message);
+                }
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        function getSharedNotes() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/shared-notes`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => console.log('Shared Notes:', data));
+        }
+
+        function createPassword() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('createPasswordNoteId').value;
+            const password = document.getElementById('createNotePassword').value;
+            const password_confirmation = document.getElementById('createNotePasswordConfirmation').value;
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                fetch(`${API_URL}/notes/${noteId}/update-password`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, password_confirmation }),
+                }).then(response => response.json()).then(data => {
+                    alert(data.message);
+                    if (response.ok) {
+                        lockedNotes.add(noteId);
+                        unlockedNotes.delete(noteId); // Ensure it's locked until unlocked
+                    }
+                });
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        function changeNotePassword() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('changePasswordNoteId').value;
+            const currentPassword = document.getElementById('currentNotePassword').value;
+            const password = document.getElementById('newNotePassword').value;
+            const password_confirmation = document.getElementById('newNotePasswordConfirmation').value;
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                fetch(`${API_URL}/notes/${noteId}/update-password`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, password_confirmation }),
+                }).then(response => response.json()).then(data => {
+                    alert(data.message);
+                    if (response.ok) {
+                        lockedNotes.add(noteId);
+                        unlockedNotes.delete(noteId); // Ensure it's locked until unlocked
+                    }
+                });
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        async function unlockNote() {
+            if (!token) return alert('Please log in first.');
+            const noteId = document.getElementById('unlockNoteId').value;
+            const password = document.getElementById('unlockNotePassword').value;
+            const statusElement = document.getElementById('unlockStatus');
+            try {
+                const response = await fetch(`${API_URL}/notes/${noteId}/verify-password`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password }),
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (errorData.message.includes('No password set')) {
+                        statusElement.textContent = `Note ${noteId} has no password and is accessible.`;
+                        statusElement.className = 'unlocked';
+                        alert('Note has no password and is accessible.');
+                        unlockedNotes.add(noteId); // Treat as unlocked
+                        lockedNotes.delete(noteId);
+                        return;
+                    }
+                    throw new Error(errorData.message || 'Verification failed');
+                }
+                const data = await response.json();
+                if (data.verified) {
+                    unlockedNotes.add(noteId);
+                    lockedNotes.add(noteId); // Note has a password
+                    statusElement.textContent = `Note ${noteId} unlocked.`;
+                    statusElement.className = 'unlocked';
+                    alert('Note unlocked successfully!');
+                } else {
+                    lockedNotes.add(noteId); // Note has a password but wrong one provided
+                    statusElement.textContent = 'Incorrect password.';
+                    statusElement.className = '';
+                    alert('Incorrect password.');
+                }
+            } catch (error) {
+                console.error('Unlock Note Error:', error);
+                statusElement.textContent = `Error: ${error.message}`;
+                statusElement.className = '';
+                alert('Failed to unlock note: ' + error.message);
+            }
+        }
+
+        async function uploadImagesForNote() {
+            if (!token) return alert('Please log in first.');
+            const noteIdElement = document.getElementById('uploadNoteId');
+            const fileInput = document.getElementById('noteImageUpload');
+            const statusElement = document.getElementById('uploadStatus');
+            if (!noteIdElement || !fileInput || !statusElement) {
+                alert('One or more form elements are missing.');
+                return;
+            }
+            const noteId = noteIdElement.value;
+            const files = fileInput.files;
+            if (!noteId || files.length === 0) {
+                alert('Please enter a Note ID and select at least one image.');
+                return;
+            }
+            if (unlockedNotes.has(noteId) || !lockedNotes.has(noteId)) {
+                const formData = new FormData();
+                formData.append('note_id', noteId);
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('images[]', files[i]);
+                }
+                try {
+                    const response = await fetch(`${API_URL}/notes/${noteId}/upload-images`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                        body: formData,
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `HTTP error ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Images uploaded:', data);
+                    statusElement.textContent = `Images uploaded for Note ${noteId}: ${data.urls.join(', ')}`;
+                    statusElement.className = 'unlocked';
+                    alert('Images uploaded successfully!');
+                } catch (error) {
+                    console.error('Upload Images Error:', error);
+                    statusElement.textContent = `Error uploading images: ${error.message}`;
+                    statusElement.className = '';
+                    alert('Failed to upload images: ' + error.message);
+                }
+            } else {
+                alert('Note is locked. Please unlock it first.');
+            }
+        }
+
+        function getLabels() {
+            if (!token) return alert('Please log in first.');
+            fetch(`${API_URL}/labels`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => console.log('Labels:', data));
+        }
+
+        async function createLabel() {
+            if (!token) return alert('Please log in first.');
+            const name = document.getElementById('createLabelName').value;
+            if (!name) return alert('Please enter a label name.');
+            try {
+                const response = await fetch(`${API_URL}/labels`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ name }),
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Response:', text);
+                    throw new Error(`HTTP error ${response.status}: ${text.startsWith('<!DOCTYPE') ? 'Received HTML instead of JSON' : text}`);
+                }
+                const data = await response.json();
+                console.log('Label created:', data);
+                alert(data.message || 'Label created successfully');
+            } catch (error) {
+                console.error('Create Label Error:', error);
+                alert('Failed to create label: ' + error.message);
+            }
+        }
+
+        async function updateLabel() {
+            if (!token) return alert('Please log in first.');
+            const name = document.getElementById('updateLabelName').value;
+            const newName = document.getElementById('newLabelName').value;
+            if (!name || !newName) return alert('Please enter both current and new label names.');
+            try {
+                const response = await fetch(`${API_URL}/labels/${encodeURIComponent(name)}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ name: newName }),
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Response:', text);
+                    throw new Error(`HTTP error ${response.status}: ${text.startsWith('<!DOCTYPE') ? 'Received HTML instead of JSON' : text}`);
+                }
+                const data = await response.json();
+                console.log('Label updated:', data);
+                alert(data.message || 'Label updated successfully');
+            } catch (error) {
+                console.error('Update Label Error:', error);
+                alert('Failed to update label: ' + error.message);
+            }
+        }
+
+        function deleteLabel() {
+            if (!token) return alert('Please log in first.');
+            const name = document.getElementById('deleteLabelName').value;
+            fetch(`${API_URL}/labels/${name}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            }).then(response => response.json()).then(data => alert(data.message));
+        }
+
+        async function getPreferences() {
+            if (!token) return alert('Please log in first.');
+            try {
+                const response = await fetch(`${API_URL}/preferences`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${text.startsWith('<!DOCTYPE') ? 'Received HTML' : text}`);
+                }
+                const data = await response.json();
+                console.log('Preferences:', data);
+                alert(data.message || 'Preferences retrieved successfully');
+            } catch (error) {
+                console.error('Get Preferences Error:', error);
+                alert('Failed to get preferences: ' + error.message);
+            }
+        }
+
+        async function updatePreferences() {
+            if (!token) return alert('Please log in first.');
+            const font_size = document.getElementById('fontSizePreference').value;
+            const note_color = document.getElementById('noteColorPreference').value;
+            const theme = document.getElementById('themePreference').value;
+            const statusElement = document.getElementById('preferenceStatus');
+            try {
+                const response = await fetch(`${API_URL}/preferences`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ font_size, note_color, theme }),
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Response:', text);
+                    throw new Error(`HTTP error ${response.status}: ${text.startsWith('<!DOCTYPE') ? 'Received HTML instead of JSON' : text}`);
+                }
+                const data = await response.json();
+                console.log('Preferences updated:', data);
+                statusElement.textContent = `Preferences updated: Font Size=${data.data.font_size}, Note Color=${data.data.note_color}, Theme=${data.data.theme}`;
+                statusElement.className = 'unlocked';
+                alert(data.message || 'Preferences updated successfully');
+            } catch (error) {
+                console.error('Update Preferences Error:', error);
+                statusElement.textContent = `Error: ${error.message}`;
+                statusElement.className = '';
+                alert('Failed to update preferences: ' + error.message);
+            }
+        }
+
+        // Pre-populate reset form from URL query parameters
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const token = urlParams.get('token');
+            if (email) document.getElementById('resetEmail').value = decodeURIComponent(email);
+            if (token) document.getElementById('resetToken').value = token;
+        });
+    </script>
+</body>
+</html>
